@@ -1,0 +1,48 @@
+# deps
+node_modules/
+.pnp
+.pnp.js
+
+# next
+.next/
+out/
+build/
+dist/
+
+# env
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# vercel
+.vercel
+
+# misc
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# build artifacts
+tsconfig.tsbuildinfo
+
+# runtime cache (regenerated automatically)
+backend/data/*.json
+
+# local scratch / debug dumps
+/scan*.json
+/nvda*.json
+/xlv*.json
+
+# claude code local settings (personal)
+.claude/settings.local.json

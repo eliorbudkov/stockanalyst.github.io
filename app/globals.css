@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background: #0b1020;
+  color: #e7ecff;
+  overflow-x: hidden;        /* avoid stray horizontal scroll from canvas widths */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Charts (lightweight-charts canvas) shouldn't overflow their card on mobile */
+section canvas {
+  max-width: 100%;
+}
+
+/* RTL aware scrollbar */
+* {
+  scrollbar-color: #26305a transparent;
+  scrollbar-width: thin;
+}
+
+input, button, select {
+  font-family: inherit;
+}
+
+/* Numeric/ticker text always LTR */
+.ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
