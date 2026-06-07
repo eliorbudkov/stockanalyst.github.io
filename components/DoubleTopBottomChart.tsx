@@ -35,8 +35,8 @@ export function DoubleTopBottomChart({ candles, signal, height = 340 }: Props) {
     const isTop = g.kind === 'double_top';
     const accent = isTop ? '#ff6b81' : '#3ddc97';
     const pointLabel = isTop ? 'שיא' : 'שפל';
-    const pointShape = isTop ? 'arrowDown' : 'arrowUp';
-    const pointPosition = isTop ? 'aboveBar' : 'belowBar';
+    const pointShape: 'arrowDown' | 'arrowUp' = isTop ? 'arrowDown' : 'arrowUp';
+    const pointPosition: 'aboveBar' | 'belowBar' = isTop ? 'aboveBar' : 'belowBar';
 
     const chart = createChart(ref.current, {
       width: ref.current.clientWidth,
@@ -98,7 +98,8 @@ export function DoubleTopBottomChart({ candles, signal, height = 340 }: Props) {
         shape: pointShape,
         text: `${pointLabel} 2`,
       },
-    ].sort((a, b) => (a.time as number) - (b.time as number));
+    ];
+    markers.sort((a, b) => (a.time as number) - (b.time as number));
     candleSeries.setMarkers(markers);
 
     // Outline: first → neckline → second

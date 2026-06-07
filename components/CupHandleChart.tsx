@@ -9,7 +9,7 @@ import {
   type IChartApi,
   type UTCTimestamp,
 } from 'lightweight-charts';
-import type { Candle, PatternSignal } from '@/lib/types';
+import type { Candle, CupHandleGeometry, PatternSignal } from '@/lib/types';
 import { Card } from './Card';
 import { fmtNum, fmtPct } from '@/lib/format';
 
@@ -21,7 +21,7 @@ type Props = {
 
 export function CupHandleChart({ candles, signal, height = 360 }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const g = signal.geometry;
+  const g = signal.geometry as CupHandleGeometry | undefined;
 
   useEffect(() => {
     if (!ref.current || !g) return;
