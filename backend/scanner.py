@@ -44,7 +44,12 @@ from patterns import detect_patterns
 from scoring import compute_score
 from universe import get_momentum_universe, get_universe
 
-CACHE_TTL_SECONDS = 24 * 60 * 60
+# How long a *freshly computed* scan is served before a background refresh is
+# triggered. Kept short so an actively-used dyno reflects current prices instead
+# of freezing on one result for a whole day; the refresh runs off the request
+# path so it never blocks. (The committed cold-start seed is handled separately —
+# it is always treated as stale, see `from_seed` below.)
+CACHE_TTL_SECONDS = 30 * 60
 DEFAULT_THRESHOLD = 8.0
 SWING_THRESHOLD = 8.0
 SWING_OVERALL_THRESHOLD = 7.0
@@ -76,7 +81,7 @@ ETFS: list[tuple[str, str, str]] = [
 ]
 
 
-_cache: dict[str, Any] = {"data": None, "ts": 0.0, "running": False}
+_cache: dict[str, Any] = {"data": None, "ts": 0.0, "running": False, "from_seed": False}
 _scan_lock = Lock()
 
 # ── Disk-backed scan cache (cold-start survival) ─────────────────────────────
@@ -108,6 +113,12 @@ def _load_disk_cache() -> None:
             if data:
                 _cache["data"] = data
                 _cache["ts"] = float(cached.get("ts", 0.0))
+                # Mark this as the cold-start seed. On Render the runtime disk is
+                # ephemeral, so every boot reloads the *committed* seed — whose
+                # timestamp may be only minutes old and would otherwise look
+                # "fresh", freezing the scan on identical results for a full TTL.
+                # Flagging it stale forces the first request to refresh live.
+                _cache["from_seed"] = True
     except Exception as e:
         log.warning("scan cache load failed: %s", e)
 
@@ -141,6 +152,7 @@ def _kick_background_refresh() -> None:
             data = run_scan(refresh_momentum=False)
             _cache["data"] = data
             _cache["ts"] = time.time()
+            _cache["from_seed"] = False
             _persist_disk_cache(data, _cache["ts"])
         except Exception as e:
             log.warning("background scan refresh failed: %s", e)
@@ -836,7 +848,13 @@ def run_scan(
 def get_scan(force: bool = False) -> dict[str, Any]:
     now = time.time()
     have_cache = _cache["data"] is not None
-    fresh = have_cache and now - _cache["ts"] < CACHE_TTL_SECONDS
+    # The committed seed is never "fresh" — serving it must always kick a live
+    # refresh, otherwise a recently-generated seed freezes the scan for a TTL.
+    fresh = (
+        have_cache
+        and not _cache["from_seed"]
+        and now - _cache["ts"] < CACHE_TTL_SECONDS
+    )
 
     if not force:
         if fresh:
@@ -851,13 +869,19 @@ def get_scan(force: bool = False) -> dict[str, Any]:
     # force=True, or no cache at all → compute synchronously (the slow path).
     with _scan_lock:
         now = time.time()
-        if not force and _cache["data"] is not None and now - _cache["ts"] < CACHE_TTL_SECONDS:
+        if (
+            not force
+            and _cache["data"] is not None
+            and not _cache["from_seed"]
+            and now - _cache["ts"] < CACHE_TTL_SECONDS
+        ):
             return _cache["data"]
         _cache["running"] = True
         try:
             data = run_scan(refresh_momentum=force)
             _cache["data"] = data
             _cache["ts"] = time.time()
+            _cache["from_seed"] = False
             _persist_disk_cache(data, _cache["ts"])
             return data
         finally:
