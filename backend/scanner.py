@@ -414,7 +414,6 @@ def _has_rising_price_structure(sub: pd.DataFrame) -> bool:
 def _build_prebreakout_swing_setup(
     *,
     current_price: float,
-    ma150: float | None,
     rvol: float | None,
     cup_pattern: dict[str, Any] | None,
     rising_structure: bool,
@@ -434,12 +433,6 @@ def _build_prebreakout_swing_setup(
         and breakout is not None
         and current_price < breakout
     )
-    sma150_cross = bool(
-        ma150 is not None
-        and current_price < ma150
-        and breakout is not None
-        and breakout >= ma150
-    )
     elevated_rvol = bool(rvol is not None and rvol >= SWING_MIN_RVOL)
 
     risk_reward = None
@@ -456,7 +449,6 @@ def _build_prebreakout_swing_setup(
     checks = {
         "cup_handle_stage": handle_stage,
         "rising_structure": rising_structure,
-        "sma150_cross": sma150_cross,
         "elevated_rvol": elevated_rvol,
         "risk_reward": bool(
             risk_reward is not None and risk_reward >= SWING_MIN_RISK_REWARD
@@ -467,7 +459,6 @@ def _build_prebreakout_swing_setup(
     reasons = [
         "Cup and Handle is in the handle stage before breakout",
         "Recent pivot highs and lows are rising",
-        "Breakout resistance crosses above SMA150",
         f"RVOL {float(rvol or 0.0):.2f}x",
         f"R:R 1:{float(risk_reward or 0.0):.2f}",
         f"Estimated success {success_rate:.0f}%",
@@ -476,7 +467,6 @@ def _build_prebreakout_swing_setup(
         "qualified": qualified,
         "checks": checks,
         "breakout_price": breakout,
-        "sma150": ma150,
         "stop_price": stop,
         "target_price": target,
         "risk_reward": risk_reward,
@@ -493,9 +483,7 @@ def _compute_prebreakout_swing_setup(
 ) -> dict[str, Any]:
     close = sub["close"]
     current_price = float(close.iloc[-1])
-    ma150_series = sma(close, 150)
     atr_series = atr(sub["high"], sub["low"], close, 14)
-    ma150_value = _safe_float(ma150_series.iloc[-1])
     atr_value = _safe_float(atr_series.iloc[-1])
     effective_rvol = (
         rvol
@@ -505,7 +493,6 @@ def _compute_prebreakout_swing_setup(
     patterns = detect_patterns(sub, current_price, atr_value)
     return _build_prebreakout_swing_setup(
         current_price=current_price,
-        ma150=ma150_value,
         rvol=effective_rvol,
         cup_pattern=patterns.get("cup_and_handle"),
         rising_structure=_has_rising_price_structure(sub),
@@ -580,7 +567,6 @@ def _evaluate(
     patterns_data = detect_patterns(sub, last_price, last_atr)
     swing_setup = _build_prebreakout_swing_setup(
         current_price=last_price,
-        ma150=last_ma150,
         rvol=rvol_v,
         cup_pattern=patterns_data.get("cup_and_handle"),
         rising_structure=_has_rising_price_structure(sub),
@@ -1407,7 +1393,6 @@ def run_scan(
                 "breakout_price": (row.get("swing_setup") or {}).get(
                     "breakout_price"
                 ),
-                "sma150": (row.get("swing_setup") or {}).get("sma150"),
             }
             for row in sorted(
                 (

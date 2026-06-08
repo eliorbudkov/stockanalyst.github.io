@@ -345,13 +345,11 @@ export type ScanItem = {
     checks: {
       cup_handle_stage: boolean;
       rising_structure: boolean;
-      sma150_cross: boolean;
       elevated_rvol: boolean;
       risk_reward: boolean;
       success_rate: boolean;
     };
     breakout_price: number | null;
-    sma150: number | null;
     stop_price: number | null;
     target_price: number | null;
     risk_reward: number | null;
@@ -462,7 +460,6 @@ export type ScanResult = {
     risk_reward: number | null;
     success_rate: number | null;
     breakout_price: number | null;
-    sma150: number | null;
   }>;
   fetched_at: number;
 };

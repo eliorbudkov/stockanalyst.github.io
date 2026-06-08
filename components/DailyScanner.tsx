@@ -448,9 +448,6 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
               {item.strategy === 'swing' && item.swing_setup?.breakout_price != null && (
                 <Chip label="פריצה" value={`$${item.swing_setup.breakout_price.toFixed(2)}`} color="#6ea8ff" />
               )}
-              {item.strategy === 'swing' && item.swing_setup?.sma150 != null && (
-                <Chip label="SMA150" value={`$${item.swing_setup.sma150.toFixed(2)}`} color="#b88cff" />
-              )}
               {item.strategy === 'investment' && item.long_term_score !== undefined && (
                 <ScoreChip label="LT" value={item.long_term_score} />
               )}

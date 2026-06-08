@@ -476,7 +476,6 @@ class SwingProfileTests(unittest.TestCase):
         }
         setup = _build_prebreakout_swing_setup(
             current_price=100,
-            ma150=103,
             rvol=1.8,
             cup_pattern=cup,
             rising_structure=True,
@@ -489,7 +488,6 @@ class SwingProfileTests(unittest.TestCase):
 
         low_rvol = _build_prebreakout_swing_setup(
             current_price=100,
-            ma150=103,
             rvol=1.49,
             cup_pattern=cup,
             rising_structure=True,
@@ -497,7 +495,7 @@ class SwingProfileTests(unittest.TestCase):
         self.assertFalse(low_rvol["qualified"])
         self.assertFalse(low_rvol["checks"]["elevated_rvol"])
 
-    def test_prebreakout_setup_requires_sma150_cross_and_sixty_percent(self):
+    def test_prebreakout_setup_requires_sixty_percent(self):
         cup = {
             "detected": True,
             "direction": "bullish",
@@ -512,13 +510,11 @@ class SwingProfileTests(unittest.TestCase):
         }
         setup = _build_prebreakout_swing_setup(
             current_price=100,
-            ma150=103,
             rvol=2.0,
             cup_pattern=cup,
             rising_structure=True,
         )
         self.assertFalse(setup["qualified"])
-        self.assertFalse(setup["checks"]["sma150_cross"])
         self.assertFalse(setup["checks"]["success_rate"])
 
     def test_breakout_pattern_requires_positive_rvol(self):
