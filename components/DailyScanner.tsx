@@ -29,6 +29,8 @@ function scoreBg(score: number): string {
 function strategyAccent(strategy?: string): string {
   if (strategy === 'swing') return '#6ea8ff';
   if (strategy === 'investment') return '#b88cff';
+  if (strategy === 'etf_swing') return '#3ddc97';
+  if (strategy === 'etf_investment') return '#ffb454';
   if (strategy === 'etf') return '#3ddc97';
   return '#8c97c2';
 }
@@ -37,6 +39,50 @@ function strategyAccent(strategy?: string): string {
 // the seed every 25s for up to ~12.5 min, covering the workflow + redeploy.
 const POLL_INTERVAL_MS = 25_000;
 const MAX_POLLS = 30;
+
+function sanitizeScanResult(result: ScanResult): ScanResult {
+  const swingThreshold = result.swing_threshold ?? 8;
+  const swingOverallThreshold = result.swing_overall_threshold ?? 7;
+  const longTermThreshold = result.threshold ?? 8;
+  const longTermOverallThreshold = result.long_term_overall_threshold ?? 7.5;
+  const etfShortThreshold = result.etf_short_term_threshold ?? swingThreshold;
+  const etfShortOverallThreshold =
+    result.etf_short_term_overall_threshold ?? swingOverallThreshold;
+  const etfLongThreshold = result.etf_long_term_threshold ?? longTermThreshold;
+  const etfLongOverallThreshold =
+    result.etf_long_term_overall_threshold ?? longTermOverallThreshold;
+  const rounded = (value?: number) => Math.round((value ?? 0) * 100) / 100;
+
+  const isSwing = (item: ScanItem) =>
+    item.kind !== 'etf' &&
+    rounded(item.short_term_score) >= swingThreshold &&
+    rounded(item.overall_score) >= swingOverallThreshold;
+  const isInvestment = (item: ScanItem) =>
+    item.kind !== 'etf' &&
+    rounded(item.long_term_score) >= longTermThreshold &&
+    rounded(item.overall_score) >= longTermOverallThreshold;
+  const isShortTermEtf = (item: ScanItem) =>
+    item.kind === 'etf' &&
+    rounded(item.short_term_score) >= etfShortThreshold &&
+    rounded(item.overall_score ?? item.etf_score) >= etfShortOverallThreshold;
+  const isLongTermEtf = (item: ScanItem) =>
+    item.kind === 'etf' &&
+    rounded(item.long_term_score) >= etfLongThreshold &&
+    rounded(item.overall_score ?? item.etf_score) >= etfLongOverallThreshold;
+  const isEtf = (item: ScanItem) => isShortTermEtf(item) || isLongTermEtf(item);
+  const legacyEtfs = result.top_etfs ?? [];
+
+  return {
+    ...result,
+    top_swing_stocks: (result.top_swing_stocks ?? []).filter(isSwing),
+    top_invest_stocks: (result.top_invest_stocks ?? []).filter(isInvestment),
+    top_stocks: (result.top_stocks ?? []).filter(isSwing),
+    top_etfs: legacyEtfs.filter(isEtf),
+    top_short_term_etfs: (result.top_short_term_etfs ?? legacyEtfs).filter(isShortTermEtf),
+    top_long_term_etfs: (result.top_long_term_etfs ?? legacyEtfs).filter(isLongTermEtf),
+    top: (result.top ?? []).filter((item) => isEtf(item) || isSwing(item) || isInvestment(item)),
+  };
+}
 
 export function DailyScanner() {
   const [data, setData] = useState<ScanResult | null>(null);
@@ -62,7 +108,7 @@ export function DailyScanner() {
       setError(null);
       if (!data) setLoading(true);
       const res = await api.scan(false);
-      setData(res);
+      setData(sanitizeScanResult(res));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'שגיאה');
     } finally {
@@ -82,7 +128,7 @@ export function DailyScanner() {
     try {
       const res = await api.scan(false);
       if (res.fetched_at > baselineRef.current) {
-        setData(res);
+        setData(sanitizeScanResult(res));
         setScanning(false);
         setScanMsg('הסריקה הושלמה — הנתונים עודכנו.');
         return;
@@ -144,7 +190,7 @@ export function DailyScanner() {
       title="סריקה יומית — טופ 5 הזדמנויות"
       hint={
         data
-          ? `${data.qualified_count}/${data.evaluated_count} מעל ${data.threshold}+ · ${timeAgo(data.fetched_at)}`
+          ? `${data.qualified_count}/${data.evaluated_count} מועמדים · ${timeAgo(data.fetched_at)}`
           : ''
       }
     >
@@ -204,7 +250,7 @@ export function DailyScanner() {
 
       {data && data.top.length === 0 && (
         <div className="mt-5 rounded-md border border-border bg-panel2/60 p-4 text-center text-sm text-muted">
-          לא נמצאו מועמדים עם ציון סופי ≥ {data.threshold} בסריקה האחרונה.
+          לא נמצאו מועמדים שעומדים בכל ספי האסטרטגיה בסריקה האחרונה.
           <br />
           השוק כנראה במצב מאתגר היום — בדוק שוב מאוחר יותר.
         </div>
@@ -225,10 +271,16 @@ export function DailyScanner() {
             items={data.top_invest_stocks || []}
           />
           <ScanSection
-            title="קרנות סל (ETFs)"
-            subtitle={`${data.qualified_etfs_count}/${data.etfs_evaluated} מועמדים — סף ${(data.etf_threshold ?? 7).toFixed(1)} · טכני 35% · Heatmap 30% · Inflows 15% · D/E 15% · GLI 5%`}
+            title="קרנות סל לטווח קצר — ETF Swing"
+            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — ST ≥ ${(data.etf_short_term_threshold ?? data.swing_threshold ?? 8).toFixed(1)} וגם Overall ≥ ${(data.etf_short_term_overall_threshold ?? data.swing_overall_threshold ?? 7).toFixed(1)}`}
             accent="#3ddc97"
-            items={data.top_etfs || []}
+            items={data.top_short_term_etfs || []}
+          />
+          <ScanSection
+            title="קרנות סל לטווח ארוך — ETF Investment"
+            subtitle={`${data.qualified_long_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — LT ≥ ${(data.etf_long_term_threshold ?? data.threshold ?? 8).toFixed(1)} וגם Overall ≥ ${(data.etf_long_term_overall_threshold ?? data.long_term_overall_threshold ?? 7.5).toFixed(1)}`}
+            accent="#ffb454"
+            items={data.top_long_term_etfs || []}
           />
         </div>
       )}
@@ -250,7 +302,15 @@ function ScannerHeader({
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <Stat label="מועמדים" value={data ? data.qualified_count.toString() : '—'} accent="#3ddc97" />
       <Stat label="נסרקו" value={data ? data.evaluated_count.toString() : '—'} accent="#6ea8ff" />
-      <Stat label="סף ציון" value={data ? `≥ ${data.threshold}` : '—'} accent="#ffb454" />
+      <Stat
+        label="ספי ST / LT"
+        value={
+          data
+            ? `${(data.swing_threshold ?? 8).toFixed(1)} / ${data.threshold.toFixed(1)}`
+            : '—'
+        }
+        accent="#ffb454"
+      />
       <button
         onClick={onScan}
         disabled={scanning}
@@ -390,8 +450,23 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
               {item.strategy === 'investment' && item.overall_score !== undefined && (
                 <ScoreChip label="Overall" value={item.overall_score} />
               )}
-              {item.strategy === 'etf' && item.etf_score !== undefined && (
-                <ScoreChip label="ETF" value={item.etf_score} />
+              {item.strategy === 'etf_swing' && item.short_term_score !== undefined && (
+                <ScoreChip label="ST" value={item.short_term_score} />
+              )}
+              {item.strategy === 'etf_investment' && item.long_term_score !== undefined && (
+                <ScoreChip label="LT" value={item.long_term_score} />
+              )}
+              {(item.strategy === 'etf' ||
+                item.strategy === 'etf_swing' ||
+                item.strategy === 'etf_investment') &&
+                item.overall_score !== undefined && (
+                <ScoreChip label="Overall" value={item.overall_score} />
+              )}
+              {(item.strategy === 'etf' ||
+                item.strategy === 'etf_swing' ||
+                item.strategy === 'etf_investment') &&
+                item.etf_matrix_score !== undefined && (
+                <ScoreChip label="ETF Matrix" value={item.etf_matrix_score} />
               )}
 
               {/* Strategy-specific context chips */}
@@ -401,14 +476,14 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
               {item.strategy === 'investment' && item.long_term_bonus !== undefined && item.long_term_bonus > 0 && (
                 <Chip label="Timing Bonus" value={`+${item.long_term_bonus.toFixed(2)}`} color="#3ddc97" />
               )}
-              {item.strategy === 'etf' && item.net_inflows && (
+              {item.kind === 'etf' && item.net_inflows && (
                 <Chip
                   label="Inflows"
                   value={`${item.net_inflows.shares_change_pct_30d >= 0 ? '+' : ''}${item.net_inflows.shares_change_pct_30d.toFixed(1)}%`}
                   color={item.net_inflows.shares_change_pct_30d >= 0 ? '#3ddc97' : '#ff6b81'}
                 />
               )}
-              {item.strategy === 'etf' && item.weighted_debt_equity && (
+              {item.kind === 'etf' && item.weighted_debt_equity && (
                 <Chip label="D/E" value={item.weighted_debt_equity.weighted_de.toFixed(2)} color="#ffb454" />
               )}
 

@@ -3,9 +3,15 @@
   "configurations": [
     {
       "name": "Next.js frontend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:sync"],
+      "runtimeExecutable": "npm.cmd",
+      "runtimeArgs": ["run", "dev:local"],
       "port": 3000
+    },
+    {
+      "name": "FastAPI local backend",
+      "runtimeExecutable": "backend\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "main:app", "--reload", "--host", "127.0.0.1", "--port", "8002", "--app-dir", "backend"],
+      "port": 8002
     }
   ]
 }

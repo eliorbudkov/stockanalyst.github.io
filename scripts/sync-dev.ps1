@@ -35,15 +35,15 @@ if ($localHead.Trim() -ne $remoteHead.Trim()) {
 $envFile = Join-Path $repoRoot ".env.local"
 if (-not (Test-Path -LiteralPath $envFile)) {
     $envContent = @"
-# Local frontend uses the same production backend as Vercel.
-NEXT_PUBLIC_API_URL=https://stockanalyst-github-io.onrender.com
+# Local frontend uses the dedicated local FastAPI backend.
+NEXT_PUBLIC_API_URL=http://localhost:8002
 NEXT_PUBLIC_AUTH_ALLOW_UNCONFIGURED_LOCAL=1
 "@
     [System.IO.File]::WriteAllText($envFile, $envContent, [System.Text.UTF8Encoding]::new($false))
 } else {
     $envContent = Get-Content -LiteralPath $envFile -Raw
     if ($envContent -notmatch '(?m)^NEXT_PUBLIC_API_URL=') {
-        Add-Content -LiteralPath $envFile -Value "`nNEXT_PUBLIC_API_URL=https://stockanalyst-github-io.onrender.com"
+        Add-Content -LiteralPath $envFile -Value "`nNEXT_PUBLIC_API_URL=http://localhost:8002"
     }
 }
 
@@ -57,8 +57,8 @@ if (Test-Path -LiteralPath $nextDir) {
     Remove-Item -LiteralPath $resolvedNext -Recurse -Force
 }
 
-Write-Host "Starting local frontend with the Render production API..."
+Write-Host "Starting local frontend with the dedicated local FastAPI backend..."
 Write-Host "Git commit: $($localHead.Trim())"
-Write-Host "API: https://stockanalyst-github-io.onrender.com"
+Write-Host "API: http://localhost:8002"
 & npm.cmd run dev:local
 exit $LASTEXITCODE

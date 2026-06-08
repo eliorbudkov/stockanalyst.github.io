@@ -42,13 +42,12 @@ from levels import find_support_resistance
 from matrices import (
     compute_gap_pct,
     compute_long_term_score,
-    compute_rvol,
     compute_short_term_score,
     matrix_to_dict,
 )
 from patterns import detect_patterns
 from risk import build_long_term_plan, build_risk_plan
-from scanner import ScanSeedUnavailable, get_scan
+from scanner import ScanSeedUnavailable, compute_session_adjusted_rvol, get_scan
 from scoring import compute_score
 from translate import translate_to_hebrew
 from trump_holdings import get_trump_holdings, is_trump_held
@@ -872,7 +871,7 @@ def analyze(symbol: str = Query(...), period: str = Query("2y")) -> dict[str, An
             levels["risk_reward"] = round(reward / risk, 2)
 
     # ── Dual-matrix scoring (short term / long term) ───────────────────────
-    rvol = compute_rvol(df["volume"])
+    rvol = compute_session_adjusted_rvol(df["volume"], df.index[-1])
     gap_pct = compute_gap_pct(df)
 
     trump_flag = is_trump_held(symbol)

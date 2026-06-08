@@ -315,7 +315,7 @@ export type Heatmap = {
 export type ScanItem = {
   kind: 'stock' | 'etf';
   is_qualified?: boolean;
-  strategy?: 'swing' | 'investment' | 'etf';
+  strategy?: 'swing' | 'investment' | 'etf' | 'etf_swing' | 'etf_investment';
   strategy_label?: string;
   display_score?: number;
   display_rationale?: string[];
@@ -342,6 +342,8 @@ export type ScanItem = {
   long_term_bonus_reasons?: string[];
   // ETF-only fields
   etf_score?: number;
+  etf_matrix_score?: number;
+  etf_matrix_rationale?: string[];
   etf_blocker?: boolean;
   net_inflows?: {
     shares_change_pct_30d: number;
@@ -365,11 +367,15 @@ export type ScanResult = {
   top_invest_stocks: ScanItem[];
   top_stocks: ScanItem[]; // legacy alias for top_swing_stocks
   top_etfs: ScanItem[];
+  top_short_term_etfs: ScanItem[];
+  top_long_term_etfs: ScanItem[];
   qualified_count: number;
   qualified_swing_count: number;
   qualified_invest_count: number;
   qualified_stocks_count: number;
   qualified_etfs_count: number;
+  qualified_short_term_etfs_count: number;
+  qualified_long_term_etfs_count: number;
   evaluated_count: number;
   stocks_evaluated: number;
   etfs_evaluated: number;
@@ -398,6 +404,10 @@ export type ScanResult = {
   long_term_overall_threshold?: number;
   minimum_final_score?: number;
   etf_threshold?: number;
+  etf_short_term_threshold?: number;
+  etf_short_term_overall_threshold?: number;
+  etf_long_term_threshold?: number;
+  etf_long_term_overall_threshold?: number;
   scan_timings?: Record<string, number>;
   etf_diagnostics?: Array<{
     symbol: string;

@@ -1,7 +1,9 @@
 import unittest
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
+import pandas as pd
 import scanner
 from entries import compute_long_term_entry
 from main import _calculate_beta, _fallback_descriptions, _growth_rate, _timeseries_value
@@ -13,11 +15,16 @@ from scanner import (
     SWING_OVERALL_THRESHOLD,
     SWING_THRESHOLD,
     ScanSeedUnavailable,
+    _etf_entry_score,
+    _is_etf_long_qualified,
     _is_etf_qualified,
+    _is_etf_short_qualified,
     _is_long_term_qualified,
     _is_swing_qualified,
     _passes_final_gate,
     _passes_universal_asset_gate,
+    compute_session_adjusted_rvol,
+    _sanitize_scan_payload,
 )
 from scoring import WEIGHTS, behavior_sentiment_score, market_climate_score
 from trump_holdings import SOURCE_DATE, is_source_fresh, is_trump_held
@@ -30,8 +37,97 @@ class GeneralScoreProfileTests(unittest.TestCase):
         self.assertTrue(_passes_final_gate(7.0))
         self.assertTrue(_passes_final_gate(6.999))
         self.assertFalse(_passes_final_gate(6.994))
-        self.assertFalse(_is_etf_qualified({"etf_score": 6.99}))
-        self.assertTrue(_is_etf_qualified({"etf_score": 7.0}))
+        self.assertFalse(_is_etf_qualified({
+            "etf_score": 6.99,
+            "short_term_score": 8.0,
+            "long_term_score": 8.0,
+        }))
+        self.assertTrue(_is_etf_qualified({
+            "etf_score": 7.0,
+            "short_term_score": 8.0,
+            "long_term_score": 7.0,
+        }))
+
+    def test_etf_qualification_uses_overall_score_not_matrix_score(self):
+        etf = {
+            "kind": "etf",
+            "overall_score": 7.3,
+            "etf_score": 7.3,
+            "etf_matrix_score": 9.0,
+            "short_term_score": 8.1,
+            "long_term_score": 7.9,
+        }
+        self.assertEqual(_etf_entry_score(etf), 7.3)
+        self.assertTrue(_is_etf_qualified(etf))
+        self.assertTrue(_is_etf_short_qualified(etf))
+        self.assertFalse(_is_etf_long_qualified(etf))
+
+        etf["overall_score"] = 6.9
+        self.assertFalse(_is_etf_qualified(etf))
+
+    def test_etf_short_and_long_scans_are_independent(self):
+        short_only = {
+            "kind": "etf",
+            "overall_score": 7.2,
+            "short_term_score": 8.2,
+            "long_term_score": 8.5,
+        }
+        long_only = {
+            "kind": "etf",
+            "overall_score": 7.7,
+            "short_term_score": 7.9,
+            "long_term_score": 8.2,
+        }
+        self.assertTrue(_is_etf_short_qualified(short_only))
+        self.assertFalse(_is_etf_long_qualified(short_only))
+        self.assertFalse(_is_etf_short_qualified(long_only))
+        self.assertTrue(_is_etf_long_qualified(long_only))
+
+    def test_stock_without_kind_is_not_filtered_as_etf(self):
+        stock = {
+            "symbol": "LEGACY",
+            "short_term_score": 8.1,
+            "long_term_score": 8.0,
+            "overall_score": 7.6,
+        }
+        cleaned = _sanitize_scan_payload({
+            "threshold": 8.0,
+            "top_swing_stocks": [stock],
+            "top_invest_stocks": [stock],
+            "top_stocks": [stock],
+            "top_etfs": [],
+            "top": [stock],
+        })
+        self.assertEqual(cleaned["top_swing_stocks"], [stock])
+        self.assertEqual(cleaned["top_invest_stocks"], [stock])
+
+    def test_scan_rvol_projects_incomplete_market_session(self):
+        dates = pd.bdate_range("2026-05-11", periods=21)
+        dates = dates[:-1].append(pd.DatetimeIndex(["2026-06-08"]))
+        volumes = pd.Series([1_000_000] * 20 + [250_000], index=dates)
+        market_now = datetime(
+            2026, 6, 8, 11, 0,
+            tzinfo=ZoneInfo("America/New_York"),
+        )
+
+        self.assertEqual(
+            compute_session_adjusted_rvol(volumes, dates[-1], market_now),
+            1.3,
+        )
+
+    def test_scan_rvol_does_not_project_completed_session(self):
+        dates = pd.bdate_range("2026-05-11", periods=21)
+        dates = dates[:-1].append(pd.DatetimeIndex(["2026-06-08"]))
+        volumes = pd.Series([1_000_000] * 20 + [250_000], index=dates)
+        after_close = datetime(
+            2026, 6, 8, 16, 30,
+            tzinfo=ZoneInfo("America/New_York"),
+        )
+
+        self.assertEqual(
+            compute_session_adjusted_rvol(volumes, dates[-1], after_close),
+            0.25,
+        )
 
     def test_auxiliary_lists_cannot_leak_sub_seven_assets(self):
         self.assertFalse(
@@ -41,7 +137,13 @@ class GeneralScoreProfileTests(unittest.TestCase):
         )
         self.assertTrue(
             _passes_universal_asset_gate(
-                {"kind": "etf", "symbol": "QQQ", "etf_score": 7.0}
+                {
+                    "kind": "etf",
+                    "symbol": "QQQ",
+                    "etf_score": 7.0,
+                    "short_term_score": 8.0,
+                    "long_term_score": 7.0,
+                }
             )
         )
         self.assertFalse(
@@ -54,6 +156,52 @@ class GeneralScoreProfileTests(unittest.TestCase):
                 }
             )
         )
+
+    def test_cached_lists_are_refiltered_with_current_strategy_gates(self):
+        valid_swing = {
+            "symbol": "GOOD",
+            "short_term_score": 8.0,
+            "long_term_score": 6.0,
+            "overall_score": 7.0,
+        }
+        invalid_swing = {
+            "kind": "stock",
+            "symbol": "LOW_ST",
+            "short_term_score": 7.99,
+            "long_term_score": 7.99,
+            "overall_score": 9.0,
+        }
+        invalid_invest = {
+            "kind": "stock",
+            "symbol": "LOW_OVERALL",
+            "short_term_score": 7.99,
+            "long_term_score": 8.5,
+            "overall_score": 7.49,
+        }
+        invalid_etf = {
+            "kind": "etf",
+            "symbol": "LOW_ETF",
+            "etf_score": 6.99,
+            "short_term_score": 9.0,
+            "long_term_score": 9.0,
+        }
+        payload = {
+            "threshold": 8.0,
+            "top_swing_stocks": [valid_swing, invalid_swing],
+            "top_invest_stocks": [invalid_invest],
+            "top_stocks": [valid_swing, invalid_swing],
+            "top_etfs": [invalid_etf],
+            "top": [valid_swing, invalid_swing, invalid_invest, invalid_etf],
+        }
+
+        cleaned = _sanitize_scan_payload(payload)
+
+        self.assertEqual([item["symbol"] for item in cleaned["top_swing_stocks"]], ["GOOD"])
+        self.assertEqual(cleaned["top_invest_stocks"], [])
+        self.assertEqual(cleaned["top_etfs"], [])
+        self.assertEqual(cleaned["top_short_term_etfs"], [])
+        self.assertEqual(cleaned["top_long_term_etfs"], [])
+        self.assertEqual([item["symbol"] for item in cleaned["top"]], ["GOOD"])
 
     def test_general_weights_match_new_profile(self):
         self.assertAlmostEqual(sum(WEIGHTS.values()), 1.0)
