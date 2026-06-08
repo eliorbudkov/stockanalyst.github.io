@@ -891,6 +891,7 @@ def analyze(symbol: str = Query(...), period: str = Query("2y")) -> dict[str, An
         vwap=last_vwap,
         rvol=rvol,
         gap_pct=gap_pct,
+        atr_pct=atr_pct,
         patterns=patterns,
         behavior=behavior_sentiment_data,
         sector_status=sector_status,

@@ -491,6 +491,7 @@ def _evaluate(
         vwap=last_vwap,
         rvol=rvol_v,
         gap_pct=gap_v,
+        atr_pct=atr_pct,
         patterns=patterns_data,
         behavior=behavior_data,
         sector_status=sector_status,

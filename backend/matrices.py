@@ -177,6 +177,7 @@ def compute_short_term_score(
     vwap: float | None,
     rvol: float | None,
     gap_pct: float | None,
+    atr_pct: float | None = None,
     patterns: dict | None,
     behavior: dict | None,
     sector_status: dict | None,
@@ -211,9 +212,7 @@ def compute_short_term_score(
         elif gap_pct <= -3.0:
             vol_score = max(0.0, vol_score - 1.5)
             vol_notes.append(f"Gap down של {gap_pct:.1f}% — סיגנל אזהרה")
-    # Weights re-scaled by 0.95 so the new 5% GLI category brings the total
-    # back to 1.0 — see `_gli_category` and the final append below.
-    categories.append(MatrixCategory("נפח וקטליזטורים", _clip(vol_score), 0.2375, vol_notes))
+    categories.append(MatrixCategory("נפח וקטליזטורים", _clip(vol_score), 0.30, vol_notes))
 
     # 2) Technical (30%)
     tech_score = 4.0
@@ -242,7 +241,7 @@ def compute_short_term_score(
             tech_notes.append(f"RSI חלש ({rsi14:.0f}) — אין מומנטום שורי")
     if ma50 is not None and price > ma50:
         tech_score += 0.5
-    categories.append(MatrixCategory("טכני קצר", _clip(tech_score), 0.285, tech_notes))
+    categories.append(MatrixCategory("טכני קצר", _clip(tech_score), 0.35, tech_notes))
 
     # 3) Breakout patterns (15%)
     # Fix #2: pattern absence → 5.0 (neutral). Bearish penalty applies only
@@ -314,41 +313,40 @@ def compute_short_term_score(
                     )
     else:
         pat_notes.append("אין תבנית טכנית פעילה — ציון ניטרלי")
-    categories.append(MatrixCategory("תבניות פריצה", _clip(pat_score), 0.1425, pat_notes))
+    categories.append(MatrixCategory("תבניות פריצה", _clip(pat_score), 0.15, pat_notes))
 
-    # 4) Sentiment / short squeeze potential (15%)
-    sent_score = 5.0
-    sent_notes: list[str] = []
-    sent_skipped = False
-    if behavior:
-        social = behavior.get("social_sentiment") or {}
-        ss = social.get("score")
-        if ss is not None:
-            if ss >= 7.0:
-                sent_score = 8.5
-                sent_notes.append("שיח חברתי חיובי וער")
-            elif ss >= 6.0:
-                sent_score = 7.0
-                sent_notes.append("שיח חברתי חיובי")
-            elif ss <= 3.5:
-                sent_score = 3.5
-                sent_notes.append("שיח חברתי שלילי")
-        si = behavior.get("short_interest") or {}
-        spf = si.get("short_percent_float")
-        # Short squeeze spikes are also moved to the bonus path so they
-        # complement rather than gate the score. Sentiment category here
-        # tops out at +0.7 even with extreme SI.
-        if spf is not None and spf >= 10:
-            sent_score = min(10.0, sent_score + 0.7)
-            sent_notes.append(f"Short interest {spf:.0f}% — מוגבר")
+    # 4) Volatility — ATR% (10%)
+    # The legacy "סנטימנט וזרימה" category was removed; Short Interest is now
+    # rewarded only through the additive bonus path (see below). In its place
+    # we score ATR% as a swing-suitability gauge: a moderate range gives clean
+    # tradeable moves with manageable stop distance, while extreme volatility
+    # is penalised as hard-to-manage risk.
+    atr_score = 5.0
+    atr_notes: list[str] = []
+    atr_skipped = False
+    if atr_pct is not None:
+        a = float(atr_pct)
+        if a <= 1.0:
+            atr_score = 6.5
+            atr_notes.append(f"תנודתיות נמוכה (ATR ×{a:.2f}%) — תנועה מוגבלת לסווינג")
+        elif a <= 3.0:
+            atr_score = 9.0
+            atr_notes.append(f"תנודתיות אידיאלית לסווינג (ATR ×{a:.2f}%)")
+        elif a <= 5.0:
+            atr_score = 7.0
+            atr_notes.append(f"תנודתיות מוגברת (ATR ×{a:.2f}%) — סטופ רחב יותר")
+        elif a <= 8.0:
+            atr_score = 4.5
+            atr_notes.append(f"תנודתיות גבוהה (ATR ×{a:.2f}%) — סיכון מוגבר")
+        else:
+            atr_score = 3.0
+            atr_notes.append(f"תנודתיות קיצונית (ATR ×{a:.2f}%) — קשה לניהול")
     else:
-        # Scanner path skips sentiment for performance. Marked as skipped so
-        # the final score is normalised against the remaining weight (fix #1).
-        sent_skipped = True
-        sent_notes.append("סנטימנט: נתונים לא זמינים — קטגוריה הוצאה מהממוצע")
-    categories.append(MatrixCategory("סנטימנט וזרימה", _clip(sent_score), 0.1425, sent_notes, skipped=sent_skipped))
+        atr_skipped = True
+        atr_notes.append("תנודתיות: ATR לא זמין — קטגוריה הוצאה מהממוצע")
+    categories.append(MatrixCategory("תנודתיות (ATR%)", _clip(atr_score), 0.10, atr_notes, skipped=atr_skipped))
 
-    # 5) Sector tailwind from heatmap (15%)
+    # 5) Sector tailwind from heatmap (10%)
     sec_score = 5.0
     sec_notes: list[str] = []
     sector_label = "—"
@@ -371,10 +369,10 @@ def compute_short_term_score(
             sec_notes.append(f"סקטור ניטרלי ({sector_label} {avg:+.2f}%)")
     else:
         sec_notes.append("סטטוס סקטור לא זמין")
-    categories.append(MatrixCategory("מצב סקטור (Heatmap)", _clip(sec_score), 0.1425, sec_notes))
+    categories.append(MatrixCategory("מצב סקטור (Heatmap)", _clip(sec_score), 0.10, sec_notes))
 
-    # 6) Global Liquidity (5%) — macro tailwind/headwind for risk assets
-    categories.append(_gli_category(global_liquidity, 0.05))
+    # Global Liquidity and the sentiment/flow category were removed from the
+    # short-term profile. Short Interest survives only as an additive bonus.
 
     # Fix #1: normalize against active (non-skipped) weight so missing inputs
     # don't permanently cap the achievable raw score.
@@ -391,10 +389,16 @@ def compute_short_term_score(
         rare_bonus += 0.5
         bonus_reasons.append(f"בונוס +0.5 — RVOL קיצוני (×{rvol:.1f})")
     if behavior:
+        # Short Interest is no longer a weighted category — it lives on here as
+        # an additive bonus only, so a high short float can lift a strong setup
+        # without gating the base score.
         spf = (behavior.get("short_interest") or {}).get("short_percent_float")
         if spf is not None and spf >= 20:
             rare_bonus += 0.5
             bonus_reasons.append(f"בונוס +0.5 — Short interest גבוה ({spf:.0f}%) → squeeze potential")
+        elif spf is not None and spf >= 10:
+            rare_bonus += 0.3
+            bonus_reasons.append(f"בונוס +0.3 — Short interest מוגבר ({spf:.0f}%)")
     bonus += min(rare_bonus, 1.0)
     # Group 2: Trump OGE-holding bonus — always +0.5 if present, never a
     # penalty otherwise. Independent of the rare-parameter cap.
@@ -688,7 +692,7 @@ def compute_long_term_score(
         valuation.append(8.5 if pb <= 2 else 6.0 if pb <= 5 else 4.5 if pb <= 6 else 3.0)
         valuation_notes.append(f"P/B: {pb:.1f}")
     categories.append(MatrixCategory(
-        "הערכת שווי ו-DCF", _clip(_average_score(valuation)), 0.25,
+        "הערכת שווי ו-DCF", _clip(_average_score(valuation)), 0.30,
         valuation_notes or ["נתוני הערכת שווי לא זמינים"], skipped=not valuation,
     ))
 
@@ -712,7 +716,7 @@ def compute_long_term_score(
         stability.append(metric_score)
         stability_notes.append(f"{label}: {value * 100:+.1f}%")
     categories.append(MatrixCategory(
-        "יציבות ורווחיות", _clip(_average_score(stability)), 0.20,
+        "יציבות ורווחיות", _clip(_average_score(stability)), 0.25,
         stability_notes or ["נתוני רווחיות וצמיחה לא זמינים"], skipped=not stability,
     ))
 
@@ -768,29 +772,26 @@ def compute_long_term_score(
         sector_score = 8.5 if avg >= 1 else 6.5 if avg >= 0 else 5.0 if avg >= -1 else 3.0
         sector_notes.append(f"שינוי סקטור: {avg:+.2f}%")
     categories.append(MatrixCategory(
-        "הקשר סקטוריאלי", sector_score, 0.075,
+        "הקשר סקטוריאלי", sector_score, 0.05,
         sector_notes or ["נתוני סקטור לא זמינים"], skipped=sector_status is None,
     ))
 
-    macro_score = 5.0
-    macro_notes: list[str] = []
-    macro_available = False
-    if fear_greed and fear_greed.get("score") is not None:
-        fg = float(fear_greed["score"])
-        macro_available = True
-        macro_score = 9.5 if fg <= 20 else 8.0 if fg <= 35 else 3.0 if fg >= 75 else 5.0 if fg >= 60 else 6.0
-        macro_notes.append(f"Fear & Greed: {fg:.0f}")
+    # פעילות אינסיידרים (5%) — standalone category, insider data only.
+    # Fear & Greed and Global Liquidity were removed from the long-term profile;
+    # insider activity now stands on its own as a small-weight conviction read.
+    insider_score = 5.0
+    insider_notes: list[str] = []
+    insider_available = False
     if behavior:
-        insider_score = (behavior.get("insider_trading") or {}).get("score")
-        if insider_score is not None:
-            macro_available = True
-            macro_score = min(10.0, macro_score + 1.5) if insider_score >= 7.5 else min(10.0, macro_score + 0.7) if insider_score >= 6 else max(0.0, macro_score - 1.0) if insider_score <= 3.5 else macro_score
-            macro_notes.append(f"Insider score: {float(insider_score):.1f}")
+        ins = (behavior.get("insider_trading") or {}).get("score")
+        if ins is not None:
+            insider_available = True
+            insider_score = _clip(float(ins))
+            insider_notes.append(f"Insider score: {float(ins):.1f}")
     categories.append(MatrixCategory(
-        "מאקרו ואינסיידרים", _clip(macro_score), 0.075,
-        macro_notes or ["נתוני מאקרו ואינסיידרים לא זמינים"], skipped=not macro_available,
+        "פעילות אינסיידרים", _clip(insider_score), 0.05,
+        insider_notes or ["נתוני אינסיידרים לא זמינים"], skipped=not insider_available,
     ))
-    categories.append(_gli_category(global_liquidity, 0.05))
 
     raw_score = _weighted_normalized(categories)
     timing_bonus = 0.0

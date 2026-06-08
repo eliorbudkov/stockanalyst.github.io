@@ -79,7 +79,7 @@ class LongTermScoringTests(unittest.TestCase):
         self.assertLessEqual(partial.raw_score, 10.0)
         self.assertGreaterEqual(partial.raw_score, complete.raw_score - 1.0)
 
-    def test_fundamental_weights_are_eighty_percent(self):
+    def test_fundamental_weights_are_ninety_percent(self):
         result = score_company()
         fundamental_names = {
             "הערכת שווי ו-DCF",
@@ -88,7 +88,26 @@ class LongTermScoringTests(unittest.TestCase):
             "איכות תזרים מזומנים",
         }
         weight = sum(c.weight for c in result.categories if c.name in fundamental_names)
-        self.assertAlmostEqual(weight, 0.80)
+        self.assertAlmostEqual(weight, 0.90)
+
+    def test_long_term_profile_categories_and_weights(self):
+        """Insider is a standalone category; Fear & Greed and Global Liquidity
+        are removed; the requested weight map sums to 1.0."""
+        result = score_company(behavior={"insider_trading": {"score": 8.0}})
+        weights = {c.name: c.weight for c in result.categories}
+        self.assertAlmostEqual(weights["הערכת שווי ו-DCF"], 0.30)
+        self.assertAlmostEqual(weights["יציבות ורווחיות"], 0.25)
+        self.assertAlmostEqual(weights["מאזן, חוב ונזילות"], 0.20)
+        self.assertAlmostEqual(weights["איכות תזרים מזומנים"], 0.15)
+        self.assertAlmostEqual(weights["פעילות אינסיידרים"], 0.05)
+        self.assertAlmostEqual(weights["הקשר סקטוריאלי"], 0.05)
+        self.assertAlmostEqual(sum(weights.values()), 1.0)
+        names = set(weights)
+        self.assertNotIn("מאקרו ואינסיידרים", names)
+        self.assertNotIn("Global Liquidity Index", names)
+        insider = next(c for c in result.categories if c.name == "פעילות אינסיידרים")
+        self.assertFalse(insider.skipped)
+        self.assertEqual(insider.score, 8.0)
 
 
 if __name__ == "__main__":
