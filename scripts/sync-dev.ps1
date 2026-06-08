@@ -36,14 +36,24 @@ $envFile = Join-Path $repoRoot ".env.local"
 if (-not (Test-Path -LiteralPath $envFile)) {
     $envContent = @"
 # Local frontend uses the dedicated local FastAPI backend.
-NEXT_PUBLIC_API_URL=http://localhost:8002
+NEXT_PUBLIC_API_URL=http://localhost:8003
 NEXT_PUBLIC_AUTH_ALLOW_UNCONFIGURED_LOCAL=1
 "@
     [System.IO.File]::WriteAllText($envFile, $envContent, [System.Text.UTF8Encoding]::new($false))
 } else {
     $envContent = Get-Content -LiteralPath $envFile -Raw
-    if ($envContent -notmatch '(?m)^NEXT_PUBLIC_API_URL=') {
-        Add-Content -LiteralPath $envFile -Value "`nNEXT_PUBLIC_API_URL=http://localhost:8002"
+    if ($envContent -match '(?m)^NEXT_PUBLIC_API_URL=') {
+        $envContent = $envContent -replace (
+            '(?m)^NEXT_PUBLIC_API_URL=.*$',
+            'NEXT_PUBLIC_API_URL=http://localhost:8003'
+        )
+        [System.IO.File]::WriteAllText(
+            $envFile,
+            $envContent,
+            [System.Text.UTF8Encoding]::new($false)
+        )
+    } else {
+        Add-Content -LiteralPath $envFile -Value "`nNEXT_PUBLIC_API_URL=http://localhost:8003"
     }
 }
 
@@ -59,6 +69,6 @@ if (Test-Path -LiteralPath $nextDir) {
 
 Write-Host "Starting local frontend with the dedicated local FastAPI backend..."
 Write-Host "Git commit: $($localHead.Trim())"
-Write-Host "API: http://localhost:8002"
+Write-Host "API: http://localhost:8003"
 & npm.cmd run dev:local
 exit $LASTEXITCODE

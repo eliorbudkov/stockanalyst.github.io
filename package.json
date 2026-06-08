@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:local": "next dev -p 3000",
-    "backend:dev": "backend\\.venv\\Scripts\\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8002 --app-dir backend",
+    "backend:dev": "backend\\.venv\\Scripts\\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8003 --app-dir backend",
     "dev:sync": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync-dev.ps1",
     "build": "next build",
     "start": "next start",

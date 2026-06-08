@@ -41,10 +41,10 @@ const POLL_INTERVAL_MS = 25_000;
 const MAX_POLLS = 30;
 
 function sanitizeScanResult(result: ScanResult): ScanResult {
-  const swingThreshold = result.swing_threshold ?? 8;
+  const swingThreshold = result.swing_threshold ?? 7;
   const swingOverallThreshold = result.swing_overall_threshold ?? 7;
-  const longTermThreshold = result.threshold ?? 8;
-  const longTermOverallThreshold = result.long_term_overall_threshold ?? 7.5;
+  const longTermThreshold = result.threshold ?? 7;
+  const longTermOverallThreshold = result.long_term_overall_threshold ?? 7;
   const etfShortThreshold = result.etf_short_term_threshold ?? swingThreshold;
   const etfShortOverallThreshold =
     result.etf_short_term_overall_threshold ?? swingOverallThreshold;
@@ -262,25 +262,25 @@ export function DailyScanner() {
         <div className="mt-6 space-y-6">
           <ScanSection
             title="מניות לטווח קצר — Swing Setup"
-            subtitle={`${data.qualified_swing_count ?? 0}/${data.stocks_evaluated} מועמדים — ST ≥ ${(data.swing_threshold ?? 8).toFixed(1)} וגם Overall ≥ ${(data.swing_overall_threshold ?? 7).toFixed(1)}`}
+            subtitle={`${data.qualified_swing_count ?? 0}/${data.stocks_evaluated} מועמדים — ST ≥ ${(data.swing_threshold ?? 7).toFixed(1)} וגם Overall ≥ ${(data.swing_overall_threshold ?? 7).toFixed(1)}`}
             accent="#6ea8ff"
             items={data.top_swing_stocks || []}
           />
           <ScanSection
             title="מניות לטווח ארוך — Long-Term Investment"
-            subtitle={`${data.qualified_invest_count ?? 0}/${data.stocks_evaluated} מועמדים — LT ≥ ${data.threshold.toFixed(1)} וגם Overall ≥ ${(data.long_term_overall_threshold ?? 7.5).toFixed(1)}`}
+            subtitle={`${data.qualified_invest_count ?? 0}/${data.stocks_evaluated} מועמדים — LT ≥ ${data.threshold.toFixed(1)} וגם Overall ≥ ${(data.long_term_overall_threshold ?? 7).toFixed(1)}`}
             accent="#b88cff"
             items={data.top_invest_stocks || []}
           />
           <ScanSection
             title="קרנות סל לטווח קצר — ETF Swing"
-            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — ST ≥ ${(data.etf_short_term_threshold ?? data.swing_threshold ?? 8).toFixed(1)} וגם Overall ≥ ${(data.etf_short_term_overall_threshold ?? data.swing_overall_threshold ?? 7).toFixed(1)}`}
+            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — ST ≥ ${(data.etf_short_term_threshold ?? data.swing_threshold ?? 7).toFixed(1)} וגם Overall ≥ ${(data.etf_short_term_overall_threshold ?? data.swing_overall_threshold ?? 7).toFixed(1)}`}
             accent="#3ddc97"
             items={data.top_short_term_etfs || []}
           />
           <ScanSection
             title="קרנות סל לטווח ארוך — ETF Investment"
-            subtitle={`${data.qualified_long_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — LT ≥ ${(data.etf_long_term_threshold ?? data.threshold ?? 8).toFixed(1)} וגם Overall ≥ ${(data.etf_long_term_overall_threshold ?? data.long_term_overall_threshold ?? 7.5).toFixed(1)}`}
+            subtitle={`${data.qualified_long_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — LT ≥ ${(data.etf_long_term_threshold ?? data.threshold ?? 7).toFixed(1)} וגם Overall ≥ ${(data.etf_long_term_overall_threshold ?? data.long_term_overall_threshold ?? 7).toFixed(1)}`}
             accent="#ffb454"
             items={data.top_long_term_etfs || []}
           />
@@ -308,7 +308,7 @@ function ScannerHeader({
         label="ספי ST / LT"
         value={
           data
-            ? `${(data.swing_threshold ?? 8).toFixed(1)} / ${data.threshold.toFixed(1)}`
+            ? `${(data.swing_threshold ?? 7).toFixed(1)} / ${data.threshold.toFixed(1)}`
             : '—'
         }
         accent="#ffb454"

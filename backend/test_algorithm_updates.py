@@ -60,7 +60,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "etf_score": 7.3,
             "etf_matrix_score": 9.0,
             "short_term_score": 8.1,
-            "long_term_score": 7.9,
+            "long_term_score": 6.9,
         }
         self.assertEqual(_etf_entry_score(etf), 7.3)
         self.assertTrue(_is_etf_qualified(etf))
@@ -70,18 +70,18 @@ class GeneralScoreProfileTests(unittest.TestCase):
         etf["overall_score"] = 6.9
         self.assertFalse(_is_etf_qualified(etf))
 
-    def test_etf_short_and_long_scans_are_independent(self):
+    def test_etf_short_and_long_scans_use_seven_point_strategy_gates(self):
         short_only = {
             "kind": "etf",
             "overall_score": 7.2,
-            "short_term_score": 8.2,
-            "long_term_score": 7.5,
+            "short_term_score": 7.2,
+            "long_term_score": 6.9,
         }
         long_only = {
             "kind": "etf",
             "overall_score": 7.7,
-            "short_term_score": 7.9,
-            "long_term_score": 8.2,
+            "short_term_score": 6.9,
+            "long_term_score": 7.2,
         }
         self.assertTrue(_is_etf_short_qualified(short_only))
         self.assertFalse(_is_etf_long_qualified(short_only))
@@ -189,8 +189,8 @@ class GeneralScoreProfileTests(unittest.TestCase):
         invalid_swing = {
             "kind": "stock",
             "symbol": "LOW_ST",
-            "short_term_score": 7.99,
-            "long_term_score": 7.99,
+            "short_term_score": 6.99,
+            "long_term_score": 6.99,
             "overall_score": 9.0,
         }
         invalid_invest = {
@@ -288,7 +288,10 @@ class ScanHostingSafetyTests(unittest.TestCase):
             patch.object(scanner, "_cache", cached),
             patch.object(scanner, "run_scan") as run_scan,
         ):
-            self.assertIs(scanner.get_scan(force=True), seed)
+            served = scanner.get_scan(force=True)
+            self.assertEqual(served["fetched_at"], seed["fetched_at"])
+            self.assertEqual(served["threshold"], 7.0)
+            self.assertEqual(served["swing_threshold"], 7.0)
             run_scan.assert_not_called()
 
 
@@ -388,8 +391,8 @@ class CompanyProfileFallbackTests(unittest.TestCase):
 
 
 class SwingProfileTests(unittest.TestCase):
-    def test_swing_threshold_is_eight(self):
-        self.assertEqual(SWING_THRESHOLD, 8.0)
+    def test_swing_threshold_is_seven(self):
+        self.assertEqual(SWING_THRESHOLD, 7.0)
 
     def test_short_term_profile_categories_and_weights(self):
         """New short-term profile: no sentiment/flow, no Global Liquidity, a
@@ -443,9 +446,9 @@ class SwingProfileTests(unittest.TestCase):
 
     def test_scan_requires_swing_and_overall_thresholds(self):
         self.assertEqual(SWING_OVERALL_THRESHOLD, 7.0)
-        self.assertTrue(_is_swing_qualified({"short_term_score": 8.0, "overall_score": 7.0}))
-        self.assertFalse(_is_swing_qualified({"short_term_score": 8.0, "overall_score": 6.99}))
-        self.assertFalse(_is_swing_qualified({"short_term_score": 7.99, "overall_score": 9.0}))
+        self.assertTrue(_is_swing_qualified({"short_term_score": 7.0, "overall_score": 7.0}))
+        self.assertFalse(_is_swing_qualified({"short_term_score": 7.0, "overall_score": 6.99}))
+        self.assertFalse(_is_swing_qualified({"short_term_score": 6.99, "overall_score": 9.0}))
 
     def test_breakout_pattern_requires_positive_rvol(self):
         result = compute_short_term_score(
@@ -478,9 +481,9 @@ class SwingProfileTests(unittest.TestCase):
 class LongTermSanityTests(unittest.TestCase):
     def test_scan_requires_long_term_and_overall_thresholds(self):
         self.assertEqual(LONG_TERM_OVERALL_THRESHOLD, 7.0)
-        self.assertTrue(_is_long_term_qualified({"long_term_score": 8.0, "overall_score": 7.0}))
-        self.assertFalse(_is_long_term_qualified({"long_term_score": 8.0, "overall_score": 6.99}))
-        self.assertFalse(_is_long_term_qualified({"long_term_score": 7.99, "overall_score": 9.0}))
+        self.assertTrue(_is_long_term_qualified({"long_term_score": 7.0, "overall_score": 7.0}))
+        self.assertFalse(_is_long_term_qualified({"long_term_score": 7.0, "overall_score": 6.99}))
+        self.assertFalse(_is_long_term_qualified({"long_term_score": 6.99, "overall_score": 9.0}))
 
     def test_dcf_anchor_is_blocked_above_twenty_percent(self):
         entry = compute_long_term_entry(

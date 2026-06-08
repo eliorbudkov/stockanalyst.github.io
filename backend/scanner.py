@@ -55,8 +55,8 @@ from universe import get_momentum_universe, get_universe
 # path so it never blocks. (The committed cold-start seed is handled separately —
 # it is always treated as stale, see `from_seed` below.)
 CACHE_TTL_SECONDS = 30 * 60
-DEFAULT_THRESHOLD = 8.0
-SWING_THRESHOLD = 8.0
+DEFAULT_THRESHOLD = 7.0
+SWING_THRESHOLD = 7.0
 SWING_OVERALL_THRESHOLD = 7.0
 LONG_TERM_OVERALL_THRESHOLD = 7.0
 MIN_FINAL_SCORE = 7.0
@@ -254,7 +254,8 @@ def _sanitize_scan_payload(data: dict[str, Any]) -> dict[str, Any]:
     different thresholds. Never trust membership in a stored top list: filter
     it again with the current final-score rules immediately before serving it.
     """
-    score_threshold = float(data.get("threshold") or DEFAULT_THRESHOLD)
+    # Use the current policy even when a committed seed stores an older gate.
+    score_threshold = DEFAULT_THRESHOLD
 
     def swing_ok(item: dict[str, Any]) -> bool:
         return item.get("kind") != "etf" and _is_swing_qualified(item)
@@ -284,7 +285,20 @@ def _sanitize_scan_payload(data: dict[str, Any]) -> dict[str, Any]:
     }
 
     sanitized = dict(data)
-    changed = False
+    current_policy = {
+        "threshold": DEFAULT_THRESHOLD,
+        "swing_threshold": SWING_THRESHOLD,
+        "swing_overall_threshold": SWING_OVERALL_THRESHOLD,
+        "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
+        "minimum_final_score": MIN_FINAL_SCORE,
+        "etf_threshold": ETF_THRESHOLD,
+        "etf_short_term_threshold": SWING_THRESHOLD,
+        "etf_short_term_overall_threshold": SWING_OVERALL_THRESHOLD,
+        "etf_long_term_threshold": DEFAULT_THRESHOLD,
+        "etf_long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
+    }
+    changed = any(data.get(key) != value for key, value in current_policy.items())
+    sanitized.update(current_policy)
     for key, predicate in predicates.items():
         items = data.get(key)
         if items is None and key in {"top_short_term_etfs", "top_long_term_etfs"}:
