@@ -387,6 +387,9 @@ export type ScanResult = {
   momentum_overlap_count: number;
   etf_universe_size: number;
   tier1_valid_count: number;
+  swing_tier1_candidate_count?: number;
+  long_term_tier1_candidate_count?: number;
+  tier2_overlap_count?: number;
   tier2_candidate_count: number;
   tier2_info_calls: number;
   tier1_primary_rvol: number;
@@ -417,6 +420,17 @@ export type ScanResult = {
     net_inflows_available: boolean;
     weighted_de_available: boolean;
     top_reasons: string[];
+  }>;
+  stock_diagnostics?: Array<{
+    symbol: string;
+    scan_paths: string[];
+    rvol: number | null;
+    long_term_prefilter_score: number | null;
+    short_term_score: number;
+    long_term_score: number;
+    overall_score: number;
+    swing_qualified: boolean;
+    long_term_qualified: boolean;
   }>;
   fetched_at: number;
 };

@@ -213,6 +213,8 @@ export function DailyScanner() {
           <span>נוספו מחוץ למדדים: <b className="ltr text-good">{data.momentum_added_count}</b></span>
           <span>יקום דינמי: <b className="ltr text-text">{data.stock_universe_size}</b> מניות</span>
           <span>Tier 1 תקינים: <b className="ltr text-text">{data.tier1_valid_count}</b></span>
+          <span>Swing Tier 1: <b className="ltr text-warn">{data.swing_tier1_candidate_count ?? 0}</b></span>
+          <span>Long Tier 1: <b className="ltr text-good">{data.long_term_tier1_candidate_count ?? 0}</b></span>
           <span>Tier 2: <b className="ltr text-accent">{data.tier2_candidate_count}</b></span>
           <span>קריאות info: <b className="ltr text-text">{data.tier2_info_calls}</b></span>
           <span>ETFs: <b className="ltr text-text">{data.etf_universe_size}</b></span>

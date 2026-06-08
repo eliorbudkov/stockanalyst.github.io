@@ -22,8 +22,12 @@ from scanner import (
     _is_etf_short_qualified,
     _is_long_term_qualified,
     _is_swing_qualified,
+    _long_term_prefilter_score,
+    _merge_tier2_candidates,
     _passes_final_gate,
     _passes_universal_asset_gate,
+    _select_long_term_tier1,
+    _select_swing_tier1,
     compute_session_adjusted_rvol,
     _sanitize_scan_payload,
 )
@@ -286,6 +290,68 @@ class ScanHostingSafetyTests(unittest.TestCase):
         ):
             self.assertIs(scanner.get_scan(force=True), seed)
             run_scan.assert_not_called()
+
+
+class TierOneFunnelTests(unittest.TestCase):
+    @staticmethod
+    def _prices(start: float, end: float, periods: int = 220) -> pd.DataFrame:
+        index = pd.bdate_range("2025-08-01", periods=periods)
+        step = (end - start) / max(periods - 1, 1)
+        close = pd.Series(
+            [start + step * offset for offset in range(periods)],
+            index=index,
+        )
+        return pd.DataFrame({
+            "open": close,
+            "high": close * 1.01,
+            "low": close * 0.99,
+            "close": close,
+            "volume": 1_000_000.0,
+        })
+
+    def test_long_term_funnel_does_not_require_abnormal_rvol(self):
+        low_volume_quality = {
+            "symbol": "VALUE",
+            "rvol": 0.72,
+            "sub": self._prices(80.0, 110.0),
+        }
+        short_history_swing = {
+            "symbol": "SWING",
+            "rvol": 2.2,
+            "sub": self._prices(100.0, 70.0, periods=80),
+        }
+
+        self.assertEqual(_select_swing_tier1([low_volume_quality]), [])
+        selected = _select_long_term_tier1(
+            [low_volume_quality, short_history_swing]
+        )
+        self.assertEqual([row["symbol"] for row in selected], ["VALUE"])
+        self.assertGreater(_long_term_prefilter_score(low_volume_quality["sub"]), 0)
+
+    def test_merged_funnels_keep_strategy_paths_and_cap_expensive_stage(self):
+        common = {
+            "symbol": "BOTH",
+            "rvol": 1.8,
+            "sub": self._prices(90.0, 120.0),
+        }
+        swing = [common] + [
+            {"symbol": f"S{index}", "rvol": 2.0, "sub": common["sub"]}
+            for index in range(20)
+        ]
+        long_term = [common] + [
+            {
+                "symbol": f"L{index}",
+                "rvol": 0.8,
+                "sub": common["sub"],
+                "long_term_prefilter_score": 8.0,
+            }
+            for index in range(20)
+        ]
+
+        merged = _merge_tier2_candidates(swing[:15], long_term[:15])
+        self.assertLessEqual(len(merged), 30)
+        both = next(row for row in merged if row["symbol"] == "BOTH")
+        self.assertEqual(set(both["scan_paths"]), {"swing", "long_term"})
 
 
 class CompanyProfileFallbackTests(unittest.TestCase):

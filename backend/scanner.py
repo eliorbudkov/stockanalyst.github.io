@@ -1,8 +1,9 @@
 """Daily market scanner.
 
 Uses a dynamic S&P 500 + Nasdaq-100 universe. Tier 1 performs a cheap batch
-OHLCV/RVOL pass; Tier 2 runs expensive fundamentals for only 15-30 abnormal
-volume candidates. ETFs run independently through their dedicated matrix.
+OHLCV pass with separate Swing (RVOL) and Long-Term (stability) funnels.
+Tier 2 runs expensive fundamentals for at most 30 merged candidates. ETFs run
+independently through their dedicated matrix.
 
 Tier 1 uses one batched OHLCV download. Tier 2 fetches complete `.info`
 fundamentals in parallel only for selected candidates. Optional per-symbol
@@ -61,10 +62,13 @@ LONG_TERM_OVERALL_THRESHOLD = 7.0
 MIN_FINAL_SCORE = 7.0
 ETF_THRESHOLD = MIN_FINAL_SCORE
 DEFAULT_TOP_N = 5
-TIER1_MIN_CANDIDATES = 15
 TIER1_MAX_CANDIDATES = 30
+SWING_TIER1_MAX_CANDIDATES = 15
+LONG_TERM_TIER1_MAX_CANDIDATES = 15
 TIER1_PRIMARY_RVOL = 1.50
 TIER1_FLOOR_RVOL = 1.15
+STOCK_BATCH_CHUNK_SIZE = 200
+STOCK_BATCH_WORKERS = 3
 
 
 # Curated ETF universe — broad market + sector + factor.
@@ -624,6 +628,40 @@ def _download_batch(symbols: list[str]) -> pd.DataFrame:
     )
 
 
+def _normalize_batch_columns(raw: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
+    """Ensure every batch can be concatenated and sliced by ticker."""
+    if raw is None or raw.empty or isinstance(raw.columns, pd.MultiIndex):
+        return raw
+    if len(symbols) != 1:
+        return raw
+    normalized = raw.copy()
+    normalized.columns = pd.MultiIndex.from_product([symbols, normalized.columns])
+    return normalized
+
+
+def _download_stock_batch(symbols: list[str]) -> tuple[pd.DataFrame, int]:
+    """Download the large stock universe in bounded parallel chunks."""
+    if not symbols:
+        return pd.DataFrame(), 0
+    chunks = [
+        symbols[index:index + STOCK_BATCH_CHUNK_SIZE]
+        for index in range(0, len(symbols), STOCK_BATCH_CHUNK_SIZE)
+    ]
+    if len(chunks) == 1:
+        return _normalize_batch_columns(_download_batch(chunks[0]), chunks[0]), 1
+
+    with ThreadPoolExecutor(max_workers=min(STOCK_BATCH_WORKERS, len(chunks))) as pool:
+        frames = list(pool.map(_download_batch, chunks))
+    normalized = [
+        _normalize_batch_columns(frame, chunk)
+        for frame, chunk in zip(frames, chunks)
+        if frame is not None and not frame.empty
+    ]
+    if not normalized:
+        return pd.DataFrame(), len(chunks)
+    return pd.concat(normalized, axis=1), len(chunks)
+
+
 def _slice_symbol(raw: pd.DataFrame, symbol: str) -> pd.DataFrame | None:
     if raw is None or raw.empty:
         return None
@@ -638,11 +676,11 @@ def _slice_symbol(raw: pd.DataFrame, symbol: str) -> pd.DataFrame | None:
         return None
 
 
-def _tier1_candidates(
+def _build_tier1_rows(
     universe: list[dict[str, Any]],
     raw: pd.DataFrame,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Cheap OHLCV-only gate. Returns selected candidates and all valid rows."""
+) -> list[dict[str, Any]]:
+    """Build the shared OHLCV dataset used by both strategy funnels."""
     rows: list[dict[str, Any]] = []
     for entry in universe:
         symbol = entry["symbol"]
@@ -653,22 +691,118 @@ def _tier1_candidates(
         if rvol_v is None:
             continue
         rows.append({**entry, "rvol": float(rvol_v), "sub": sub})
+    return rows
 
-    rows.sort(key=lambda row: row["rvol"], reverse=True)
-    primary = [row for row in rows if row["rvol"] >= TIER1_PRIMARY_RVOL]
-    selected = primary[:TIER1_MAX_CANDIDATES]
+
+def _select_swing_tier1(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Select abnormal-volume candidates for the Swing funnel only."""
+    ranked = sorted(rows, key=lambda row: row["rvol"], reverse=True)
+    primary = [row for row in ranked if row["rvol"] >= TIER1_PRIMARY_RVOL]
+    selected = primary[:SWING_TIER1_MAX_CANDIDATES]
 
     # Keep the expensive stage useful on quieter days, but never admit normal
     # volume: fillers still need at least 1.15x relative volume.
-    if len(selected) < TIER1_MIN_CANDIDATES:
+    if len(selected) < SWING_TIER1_MAX_CANDIDATES:
         selected_symbols = {row["symbol"] for row in selected}
         fillers = [
-            row for row in rows
+            row for row in ranked
             if row["symbol"] not in selected_symbols and row["rvol"] >= TIER1_FLOOR_RVOL
         ]
-        selected.extend(fillers[: TIER1_MIN_CANDIDATES - len(selected)])
+        selected.extend(fillers[: SWING_TIER1_MAX_CANDIDATES - len(selected)])
+    return selected[:SWING_TIER1_MAX_CANDIDATES]
 
-    return selected[:TIER1_MAX_CANDIDATES], rows
+
+def _long_term_prefilter_score(sub: pd.DataFrame) -> float:
+    """Rank long-term candidates cheaply without making RVOL a requirement."""
+    if sub is None or len(sub) < 150:
+        return -1.0
+    close = sub["close"].astype(float)
+    price = float(close.iloc[-1])
+    ma50 = float(close.tail(50).mean())
+    ma150 = float(close.tail(150).mean())
+    ma200 = float(close.tail(200).mean()) if len(close) >= 200 else ma150
+    returns = close.pct_change().dropna()
+    annual_vol = (
+        float(returns.tail(126).std() * math.sqrt(252))
+        if len(returns) >= 20
+        else 1.0
+    )
+    six_month_return = (
+        price / float(close.iloc[-126]) - 1.0
+        if len(close) >= 126 and float(close.iloc[-126]) > 0
+        else 0.0
+    )
+    distance_ma200 = price / ma200 - 1.0 if ma200 > 0 else 0.0
+
+    score = 0.0
+    score += 2.0 if price >= ma200 else 0.0
+    score += 1.5 if ma150 >= ma200 else 0.0
+    score += 1.0 if price >= ma50 else 0.0
+    score += 0.5 if six_month_return >= 0 else 0.0
+    if annual_vol <= 0.25:
+        score += 3.0
+    elif annual_vol <= 0.35:
+        score += 2.0
+    elif annual_vol <= 0.50:
+        score += 1.0
+    if -0.10 <= distance_ma200 <= 0.20:
+        score += 2.0
+    elif -0.20 <= distance_ma200 <= 0.35:
+        score += 1.0
+    return round(score, 3)
+
+
+def _select_long_term_tier1(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Select stable long-term candidates independently of current volume."""
+    ranked: list[dict[str, Any]] = []
+    for row in rows:
+        long_term_rank = _long_term_prefilter_score(row["sub"])
+        if long_term_rank < 0:
+            continue
+        ranked.append({**row, "long_term_prefilter_score": long_term_rank})
+    ranked.sort(
+        key=lambda row: (
+            -float(row["long_term_prefilter_score"]),
+            row["symbol"],
+        )
+    )
+    return ranked[:LONG_TERM_TIER1_MAX_CANDIDATES]
+
+
+def _merge_tier2_candidates(
+    swing_candidates: list[dict[str, Any]],
+    long_term_candidates: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Merge both funnels while retaining strategy eligibility."""
+    merged: dict[str, dict[str, Any]] = {}
+    for path, candidates in (
+        ("swing", swing_candidates),
+        ("long_term", long_term_candidates),
+    ):
+        for candidate in candidates:
+            symbol = candidate["symbol"]
+            existing = merged.setdefault(symbol, {**candidate, "scan_paths": []})
+            if path not in existing["scan_paths"]:
+                existing["scan_paths"].append(path)
+            if "long_term_prefilter_score" in candidate:
+                existing["long_term_prefilter_score"] = candidate[
+                    "long_term_prefilter_score"
+                ]
+    return list(merged.values())[:TIER1_MAX_CANDIDATES]
+
+
+def _tier1_candidates(
+    universe: list[dict[str, Any]],
+    raw: pd.DataFrame,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Backward-compatible combined Tier 1 interface."""
+    rows = _build_tier1_rows(universe, raw)
+    selected = _merge_tier2_candidates(
+        _select_swing_tier1(rows),
+        _select_long_term_tier1(rows),
+    )
+
+    return selected, rows
 
 
 def _merge_stock_universes(
@@ -712,18 +846,32 @@ def run_scan(
         download_started = time.time()
         return _download_batch(symbols), round(time.time() - download_started, 2)
 
+    def timed_stock_download(
+        symbols: list[str],
+    ) -> tuple[pd.DataFrame, float, int]:
+        download_started = time.time()
+        raw, chunk_count = _download_stock_batch(symbols)
+        return raw, round(time.time() - download_started, 2), chunk_count
+
     stage_started = time.time()
     with ThreadPoolExecutor(max_workers=2) as pool:
-        stock_download = pool.submit(timed_download, stock_symbols)
+        stock_download = pool.submit(timed_stock_download, stock_symbols)
         etf_download = pool.submit(timed_download, etf_symbols)
-        stock_raw, stock_download_seconds = stock_download.result()
+        stock_raw, stock_download_seconds, stock_batch_chunks = stock_download.result()
         etf_raw, etf_download_seconds = etf_download.result()
     timings["batch_download_seconds"] = round(time.time() - stage_started, 2)
     timings["stock_batch_download_seconds"] = stock_download_seconds
     timings["etf_batch_download_seconds"] = etf_download_seconds
+    timings["stock_batch_chunks"] = stock_batch_chunks
 
     stage_started = time.time()
-    tier2_candidates, tier1_rows = _tier1_candidates(stock_universe, stock_raw)
+    tier1_rows = _build_tier1_rows(stock_universe, stock_raw)
+    swing_tier1_candidates = _select_swing_tier1(tier1_rows)
+    long_term_tier1_candidates = _select_long_term_tier1(tier1_rows)
+    tier2_candidates = _merge_tier2_candidates(
+        swing_tier1_candidates,
+        long_term_tier1_candidates,
+    )
     timings["tier1_filter_seconds"] = round(time.time() - stage_started, 2)
 
     try:
@@ -772,6 +920,11 @@ def run_scan(
             if not evaluation:
                 continue
             evaluation["momentum_sources"] = row.get("momentum_sources") or []
+            evaluation["scan_paths"] = row.get("scan_paths") or []
+            evaluation["scan_rvol"] = round(float(row.get("rvol") or 0.0), 2)
+            evaluation["long_term_prefilter_score"] = row.get(
+                "long_term_prefilter_score"
+            )
             # This loop only evaluates the stock universe. Normalize the type
             # explicitly so malformed provider metadata cannot discard a stock.
             evaluation["kind"] = "stock"
@@ -818,13 +971,19 @@ def run_scan(
     timings["etf_evaluation_seconds"] = round(time.time() - stage_started, 2)
 
     swing_stocks = sorted(
-        (r for r in stocks_results if _is_swing_qualified(r)),
+        (
+            r for r in stocks_results
+            if "swing" in (r.get("scan_paths") or []) and _is_swing_qualified(r)
+        ),
         key=lambda r: -r["short_term_score"],
     )
     invest_stocks = sorted(
         (
             r for r in stocks_results
-            if _is_long_term_qualified(r, score_threshold)
+            if (
+                "long_term" in (r.get("scan_paths") or [])
+                and _is_long_term_qualified(r, score_threshold)
+            )
         ),
         key=lambda r: -r["long_term_score"],
     )
@@ -895,10 +1054,16 @@ def run_scan(
     # the swing list (most common usage from the previous algorithm).
     top_stocks_final = top_swing_stocks
 
-    qualified_swing = sum(1 for r in stocks_results if _is_swing_qualified(r))
+    qualified_swing = sum(
+        1 for r in stocks_results
+        if "swing" in (r.get("scan_paths") or []) and _is_swing_qualified(r)
+    )
     qualified_invest = sum(
         1 for r in stocks_results
-        if _is_long_term_qualified(r, score_threshold)
+        if (
+            "long_term" in (r.get("scan_paths") or [])
+            and _is_long_term_qualified(r, score_threshold)
+        )
     )
     qualified_short_term_etfs = sum(
         1 for r in etfs_results if _is_etf_short_qualified(r)
@@ -909,7 +1074,12 @@ def run_scan(
     qualified_etfs = sum(1 for r in etfs_results if _is_etf_qualified(r))
     qualified_stocks = [
         r for r in stocks_results
-        if _is_swing_qualified(r) or _is_long_term_qualified(r, score_threshold)
+        if (
+            "swing" in (r.get("scan_paths") or []) and _is_swing_qualified(r)
+        ) or (
+            "long_term" in (r.get("scan_paths") or [])
+            and _is_long_term_qualified(r, score_threshold)
+        )
     ]
     all_results = stocks_results + etfs_results
 
@@ -939,8 +1109,14 @@ def run_scan(
         or (
             r.get("kind") == "stock"
             and (
-                _is_swing_qualified(r)
-                or _is_long_term_qualified(r, score_threshold)
+                (
+                    "swing" in (r.get("scan_paths") or [])
+                    and _is_swing_qualified(r)
+                )
+                or (
+                    "long_term" in (r.get("scan_paths") or [])
+                    and _is_long_term_qualified(r, score_threshold)
+                )
             )
         )
     ]
@@ -975,6 +1151,13 @@ def run_scan(
         ),
         "etf_universe_size": len(ETFS),
         "tier1_valid_count": len(tier1_rows),
+        "swing_tier1_candidate_count": len(swing_tier1_candidates),
+        "long_term_tier1_candidate_count": len(long_term_tier1_candidates),
+        "tier2_overlap_count": (
+            len(swing_tier1_candidates)
+            + len(long_term_tier1_candidates)
+            - len(tier2_candidates)
+        ),
         "tier2_candidate_count": len(tier2_candidates),
         "tier2_info_calls": len(tier2_symbols),
         "tier1_primary_rvol": TIER1_PRIMARY_RVOL,
@@ -1017,6 +1200,32 @@ def run_scan(
             for r in sorted(
                 etfs_results,
                 key=lambda item: -float(_etf_entry_score(item) or 0.0),
+            )
+        ],
+        "stock_diagnostics": [
+            {
+                "symbol": r["symbol"],
+                "scan_paths": r.get("scan_paths") or [],
+                "rvol": r.get("scan_rvol"),
+                "long_term_prefilter_score": r.get("long_term_prefilter_score"),
+                "short_term_score": r.get("short_term_score"),
+                "long_term_score": r.get("long_term_score"),
+                "overall_score": r.get("overall_score"),
+                "swing_qualified": (
+                    "swing" in (r.get("scan_paths") or [])
+                    and _is_swing_qualified(r)
+                ),
+                "long_term_qualified": (
+                    "long_term" in (r.get("scan_paths") or [])
+                    and _is_long_term_qualified(r, score_threshold)
+                ),
+            }
+            for r in sorted(
+                stocks_results,
+                key=lambda item: -max(
+                    float(item.get("short_term_score") or 0.0),
+                    float(item.get("long_term_score") or 0.0),
+                ),
             )
         ],
         "buckets": buckets,
