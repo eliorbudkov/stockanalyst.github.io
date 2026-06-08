@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import scanner
 from entries import compute_long_term_entry
-from main import _fallback_descriptions, _growth_rate, _timeseries_value
+from main import _calculate_beta, _fallback_descriptions, _growth_rate, _timeseries_value
 from matrices import compute_long_term_score, compute_short_term_score
 from scanner import (
     ETF_THRESHOLD,
@@ -143,6 +143,13 @@ class CompanyProfileFallbackTests(unittest.TestCase):
     def test_growth_rate_uses_latest_two_periods(self):
         self.assertAlmostEqual(_growth_rate([100.0, 125.0]), 0.25)
         self.assertIsNone(_growth_rate([100.0]))
+
+    def test_calculates_beta_from_aligned_daily_prices(self):
+        market = {day: 100.0 + day for day in range(1, 80)}
+        stock = {day: 200.0 + 2.0 * day for day in range(1, 80)}
+        beta = _calculate_beta(stock, market)
+        self.assertIsNotNone(beta)
+        self.assertGreater(beta, 0.9)
 
 
 class SwingProfileTests(unittest.TestCase):

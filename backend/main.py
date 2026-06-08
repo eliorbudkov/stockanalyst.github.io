@@ -172,6 +172,60 @@ def _growth_rate(values: list[float]) -> float | None:
     return (values[-1] - values[-2]) / abs(values[-2])
 
 
+def _calculate_beta(stock_prices: dict[int, float], market_prices: dict[int, float]) -> float | None:
+    common_times = sorted(set(stock_prices) & set(market_prices))
+    if len(common_times) < 30:
+        return None
+    stock = pd.Series([stock_prices[t] for t in common_times], dtype=float).pct_change()
+    market = pd.Series([market_prices[t] for t in common_times], dtype=float).pct_change()
+    aligned = pd.concat([stock, market], axis=1).dropna()
+    if len(aligned) < 20:
+        return None
+    market_variance = float(aligned.iloc[:, 1].var())
+    if market_variance <= 0:
+        return None
+    covariance = float(aligned.iloc[:, 0].cov(aligned.iloc[:, 1]))
+    return covariance / market_variance
+
+
+@lru_cache(maxsize=512)
+def _chart_prices(symbol: str) -> dict[int, float]:
+    url = (
+        "https://query1.finance.yahoo.com/v8/finance/chart/"
+        f"{urllib.parse.quote(symbol.strip().upper())}?"
+        + urllib.parse.urlencode({"range": "1y", "interval": "1d"})
+    )
+    request = urllib.request.Request(
+        url,
+        headers={"Accept": "application/json", "User-Agent": "Mozilla/5.0 StockAnalyst/1.0"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        result = (payload.get("chart", {}).get("result") or [])[0]
+        timestamps = result.get("timestamp") or []
+        closes = (
+            ((result.get("indicators", {}).get("adjclose") or [{}])[0].get("adjclose"))
+            or ((result.get("indicators", {}).get("quote") or [{}])[0].get("close"))
+            or []
+        )
+        return {
+            int(timestamp): float(close)
+            for timestamp, close in zip(timestamps, closes)
+            if timestamp is not None and close is not None
+        }
+    except Exception:
+        return {}
+
+
+@lru_cache(maxsize=512)
+def _historical_beta(symbol: str) -> float | None:
+    sym = symbol.strip().upper()
+    if sym == "SPY":
+        return 1.0
+    return _calculate_beta(_chart_prices(sym), _chart_prices("SPY"))
+
+
 @lru_cache(maxsize=512)
 def _timeseries_fundamentals(symbol: str) -> dict[str, float | None]:
     """Fetch financial metrics from Yahoo's crumb-free timeseries endpoint."""
@@ -452,7 +506,11 @@ def quote(symbol: str = Query(...)) -> dict[str, Any]:
             if info.get("dividendYield") is not None
             else fundamentals.get("dividend_yield")
         ),
-        "beta": _safe_float(info.get("beta")),
+        "beta": (
+            _safe_float(info.get("beta"))
+            if info.get("beta") is not None
+            else _historical_beta(symbol)
+        ),
         "sector": sector,
         "industry": industry,
         # Extras used by the long-term matrix
