@@ -10,10 +10,13 @@ sentiment providers remain excluded because they require extra HTTP calls.
 """
 from __future__ import annotations
 
+import json
+import logging
 import math
 import time
 from concurrent.futures import ThreadPoolExecutor
-from threading import Lock
+from pathlib import Path
+from threading import Lock, Thread
 from typing import Any
 
 import pandas as pd
@@ -75,6 +78,80 @@ ETFS: list[tuple[str, str, str]] = [
 
 _cache: dict[str, Any] = {"data": None, "ts": 0.0, "running": False}
 _scan_lock = Lock()
+
+# ── Disk-backed scan cache (cold-start survival) ─────────────────────────────
+# The in-memory cache above evaporates whenever the process restarts — which on
+# a free hosting tier (e.g. Render) happens after every idle spin-down. Running
+# the full ~516-symbol scan inside the request then takes 60-120s and times out.
+#
+# So we mirror the result to disk and reload it on import. A *committed* seed
+# (backend/data/scan.json, tracked in git) ships inside the deploy image, so even
+# a brand-new dyno serves the last result instantly. Render's runtime disk is
+# ephemeral — the committed seed is what survives spin-downs; the runtime write
+# additionally helps hosts with a persistent disk and is harmless otherwise.
+log = logging.getLogger(__name__)
+SCAN_CACHE_FILE = Path(__file__).parent / "data" / "scan.json"
+SCAN_CACHE_FILE.parent.mkdir(exist_ok=True)
+
+_refresh_lock = Lock()
+_refreshing = False
+
+
+def _load_disk_cache() -> None:
+    """Populate the in-memory cache from disk once, at import time."""
+    if _cache["data"] is not None:
+        return
+    try:
+        if SCAN_CACHE_FILE.exists():
+            cached = json.loads(SCAN_CACHE_FILE.read_text(encoding="utf-8"))
+            data = cached.get("data")
+            if data:
+                _cache["data"] = data
+                _cache["ts"] = float(cached.get("ts", 0.0))
+    except Exception as e:
+        log.warning("scan cache load failed: %s", e)
+
+
+def _persist_disk_cache(data: dict[str, Any], ts: float) -> None:
+    try:
+        SCAN_CACHE_FILE.write_text(
+            json.dumps({"ts": ts, "data": data}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except Exception as e:
+        log.warning("scan cache write failed: %s", e)
+
+
+def _kick_background_refresh() -> None:
+    """Recompute the scan off the request path (stale-while-revalidate).
+
+    Lets a cold start return stale-but-instant data while fresh numbers are
+    computed in a daemon thread, so the user never waits on the heavy scan and
+    the single free-tier worker isn't blocked for other endpoints.
+    """
+    global _refreshing
+    with _refresh_lock:
+        if _refreshing:
+            return
+        _refreshing = True
+
+    def _worker() -> None:
+        global _refreshing
+        try:
+            data = run_scan(refresh_momentum=False)
+            _cache["data"] = data
+            _cache["ts"] = time.time()
+            _persist_disk_cache(data, _cache["ts"])
+        except Exception as e:
+            log.warning("background scan refresh failed: %s", e)
+        finally:
+            with _refresh_lock:
+                _refreshing = False
+
+    Thread(target=_worker, name="scan-refresh", daemon=True).start()
+
+
+_load_disk_cache()
 
 
 def _is_long_term_qualified(
@@ -758,8 +835,20 @@ def run_scan(
 
 def get_scan(force: bool = False) -> dict[str, Any]:
     now = time.time()
-    if not force and _cache["data"] is not None and now - _cache["ts"] < CACHE_TTL_SECONDS:
-        return _cache["data"]
+    have_cache = _cache["data"] is not None
+    fresh = have_cache and now - _cache["ts"] < CACHE_TTL_SECONDS
+
+    if not force:
+        if fresh:
+            return _cache["data"]
+        if have_cache:
+            # Stale but present (cold start served the seed, or TTL lapsed) →
+            # return instantly and refresh off the request path. The frontend
+            # polls a couple of times to pick up the fresh result.
+            _kick_background_refresh()
+            return _cache["data"]
+
+    # force=True, or no cache at all → compute synchronously (the slow path).
     with _scan_lock:
         now = time.time()
         if not force and _cache["data"] is not None and now - _cache["ts"] < CACHE_TTL_SECONDS:
@@ -769,6 +858,7 @@ def get_scan(force: bool = False) -> dict[str, Any]:
             data = run_scan(refresh_momentum=force)
             _cache["data"] = data
             _cache["ts"] = time.time()
+            _persist_disk_cache(data, _cache["ts"])
             return data
         finally:
             _cache["running"] = False

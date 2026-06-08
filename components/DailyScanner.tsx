@@ -41,6 +41,11 @@ export function DailyScanner() {
   const [, setTick] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoadStartedRef = useRef(false);
+  // Stale-while-revalidate: a cold server serves cached/seed data instantly and
+  // refreshes in the background (~90s). These let us poll a few times to pick up
+  // the fresh result without the user having to hit "rescan".
+  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const staleRetryRef = useRef(0);
 
   async function load(force = false) {
     try {
@@ -49,6 +54,20 @@ export function DailyScanner() {
       else if (!data) setLoading(true);
       const res = await api.scan(force);
       setData(res);
+
+      // If the server handed back stale cached/seed data (cold start), it is
+      // refreshing in the background — poll a few times to swap in fresh numbers.
+      if (staleTimerRef.current) {
+        clearTimeout(staleTimerRef.current);
+        staleTimerRef.current = null;
+      }
+      const ageSec = Date.now() / 1000 - res.fetched_at;
+      if (!force && ageSec > 600 && staleRetryRef.current < 3) {
+        staleRetryRef.current += 1;
+        staleTimerRef.current = setTimeout(() => load(false), 90_000);
+      } else if (ageSec <= 600) {
+        staleRetryRef.current = 0;
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'שגיאה');
     } finally {
@@ -65,6 +84,7 @@ export function DailyScanner() {
     timerRef.current = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
