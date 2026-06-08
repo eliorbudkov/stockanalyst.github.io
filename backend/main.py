@@ -14,6 +14,7 @@ import math
 import os
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from functools import lru_cache
 from pathlib import Path
@@ -76,6 +77,186 @@ def _ticker(symbol: str) -> yf.Ticker:
     if not sym or len(sym) > 10:
         raise HTTPException(status_code=400, detail="Invalid symbol")
     return yf.Ticker(sym)
+
+
+@lru_cache(maxsize=512)
+def _search_profile(symbol: str) -> dict[str, Any]:
+    """Fetch lightweight company identity fields without Yahoo's crumb flow."""
+    sym = symbol.strip().upper()
+    url = (
+        "https://query1.finance.yahoo.com/v1/finance/search?"
+        + urllib.parse.urlencode(
+            {"q": sym, "quotesCount": 5, "newsCount": 0, "enableFuzzyQuery": "false"}
+        )
+    )
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 StockAnalyst/1.0",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return {}
+
+    quotes = payload.get("quotes") or []
+    match = next(
+        (
+            quote
+            for quote in quotes
+            if str(quote.get("symbol") or "").upper() == sym
+        ),
+        None,
+    )
+    return match if isinstance(match, dict) else {}
+
+
+def _fallback_descriptions(
+    name: str | None,
+    sector: str | None,
+    industry: str | None,
+    exchange: str | None,
+) -> tuple[str | None, str | None]:
+    if not name:
+        return None, None
+    classification = industry or sector
+    if not classification:
+        return None, None
+    exchange_suffix = f" and is traded on {exchange}" if exchange else ""
+    description = (
+        f"{name} is a publicly traded company operating in the "
+        f"{classification} industry{exchange_suffix}."
+    )
+    hebrew_exchange = f", ונסחרת בבורסת {exchange}" if exchange else ""
+    description_he = (
+        f"{name} היא חברה ציבורית הפועלת בענף {classification}"
+        f"{hebrew_exchange}."
+    )
+    return description, description_he
+
+
+_FUNDAMENTAL_TYPES = (
+    "trailingMarketCap",
+    "trailingPeRatio",
+    "trailingPbRatio",
+    "trailingDividendYield",
+    "annualTotalRevenue",
+    "annualNetIncome",
+    "annualOperatingIncome",
+    "annualStockholdersEquity",
+    "annualTotalDebt",
+    "annualCashCashEquivalentsAndShortTermInvestments",
+    "annualFreeCashFlow",
+    "annualOperatingCashFlow",
+    "annualCurrentAssets",
+    "annualCurrentLiabilities",
+    "annualDilutedAverageShares",
+)
+
+
+def _timeseries_value(item: dict[str, Any]) -> float | None:
+    reported = item.get("reportedValue")
+    if isinstance(reported, dict):
+        value = _safe_float(reported.get("raw"))
+        if value is not None:
+            return value
+    return _safe_float(item.get("dataValue"))
+
+
+def _growth_rate(values: list[float]) -> float | None:
+    if len(values) < 2 or values[-2] == 0:
+        return None
+    return (values[-1] - values[-2]) / abs(values[-2])
+
+
+@lru_cache(maxsize=512)
+def _timeseries_fundamentals(symbol: str) -> dict[str, float | None]:
+    """Fetch financial metrics from Yahoo's crumb-free timeseries endpoint."""
+    sym = symbol.strip().upper()
+    now = int(time.time())
+    url = (
+        f"https://query1.finance.yahoo.com/ws/fundamentals-timeseries/"
+        f"v1/finance/timeseries/{urllib.parse.quote(sym)}?"
+        + urllib.parse.urlencode(
+            {
+                "symbol": sym,
+                "type": ",".join(_FUNDAMENTAL_TYPES),
+                "merge": "false",
+                "period1": now - (5 * 366 * 24 * 60 * 60),
+                "period2": now + (24 * 60 * 60),
+            }
+        )
+    )
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 StockAnalyst/1.0",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return {}
+
+    series: dict[str, list[float]] = {}
+    for row in payload.get("timeseries", {}).get("result", []):
+        types = row.get("meta", {}).get("type") or []
+        if not types:
+            continue
+        metric_type = str(types[0])
+        values = [
+            value
+            for item in (row.get(metric_type) or [])
+            if (value := _timeseries_value(item)) is not None
+        ]
+        if values:
+            series[metric_type] = values
+
+    def latest(metric_type: str) -> float | None:
+        values = series.get(metric_type) or []
+        return values[-1] if values else None
+
+    revenue = latest("annualTotalRevenue")
+    net_income = latest("annualNetIncome")
+    operating_income = latest("annualOperatingIncome")
+    equity = latest("annualStockholdersEquity")
+    total_debt = latest("annualTotalDebt")
+    current_assets = latest("annualCurrentAssets")
+    current_liabilities = latest("annualCurrentLiabilities")
+    shares = latest("annualDilutedAverageShares")
+
+    return {
+        "market_cap": latest("trailingMarketCap"),
+        "pe": latest("trailingPeRatio"),
+        "pb": latest("trailingPbRatio"),
+        "dividend_yield": latest("trailingDividendYield"),
+        "eps": net_income / shares if net_income is not None and shares else None,
+        "debt_to_equity": total_debt / equity if total_debt is not None and equity else None,
+        "free_cashflow": latest("annualFreeCashFlow"),
+        "operating_cashflow": latest("annualOperatingCashFlow"),
+        "shares_outstanding": shares,
+        "total_cash": latest("annualCashCashEquivalentsAndShortTermInvestments"),
+        "total_debt": total_debt,
+        "current_ratio": (
+            current_assets / current_liabilities
+            if current_assets is not None and current_liabilities
+            else None
+        ),
+        "profit_margin": net_income / revenue if net_income is not None and revenue else None,
+        "operating_margin": (
+            operating_income / revenue
+            if operating_income is not None and revenue
+            else None
+        ),
+        "return_on_equity": net_income / equity if net_income is not None and equity else None,
+        "revenue_growth": _growth_rate(series.get("annualTotalRevenue") or []),
+        "earnings_growth": _growth_rate(series.get("annualNetIncome") or []),
+    }
 
 
 def _history(symbol: str, period: str = "2y") -> pd.DataFrame:
@@ -228,6 +409,8 @@ def quote(symbol: str = Query(...)) -> dict[str, Any]:
         info = t.info or {}
     except Exception:
         info = {}
+    profile = _search_profile(symbol)
+    fundamentals = _timeseries_fundamentals(symbol)
     fast = getattr(t, "fast_info", None)
 
     price = _safe_float(getattr(fast, "last_price", None)) or _safe_float(info.get("currentPrice"))
@@ -236,39 +419,97 @@ def quote(symbol: str = Query(...)) -> dict[str, Any]:
     if price is not None and prev not in (None, 0):
         change_pct = (price - prev) / prev * 100.0
 
+    name = (
+        info.get("shortName")
+        or info.get("longName")
+        or profile.get("longname")
+        or profile.get("shortname")
+    )
+    sector = info.get("sector") or profile.get("sector")
+    industry = info.get("industry") or profile.get("industry")
+    exchange = profile.get("exchDisp") or profile.get("exchange")
+    source_description = info.get("longBusinessSummary") or info.get("shortBusinessSummary")
+    fallback_description, fallback_description_he = _fallback_descriptions(
+        name, sector, industry, exchange
+    )
+
     return {
         "symbol": symbol.upper(),
-        "name": info.get("shortName") or info.get("longName"),
+        "name": name,
         "currency": info.get("currency") or getattr(fast, "currency", None),
         "price": price,
         "prev_close": prev,
         "change_pct": change_pct,
-        "market_cap": _safe_float(info.get("marketCap")) or _safe_float(getattr(fast, "market_cap", None)),
-        "pe": _safe_float(info.get("trailingPE")),
-        "pb": _safe_float(info.get("priceToBook")),
-        "dividend_yield": _safe_float(info.get("dividendYield")),
+        "market_cap": (
+            _safe_float(info.get("marketCap"))
+            or _safe_float(getattr(fast, "market_cap", None))
+            or fundamentals.get("market_cap")
+        ),
+        "pe": _safe_float(info.get("trailingPE")) or fundamentals.get("pe"),
+        "pb": _safe_float(info.get("priceToBook")) or fundamentals.get("pb"),
+        "dividend_yield": (
+            _safe_float(info.get("dividendYield"))
+            if info.get("dividendYield") is not None
+            else fundamentals.get("dividend_yield")
+        ),
         "beta": _safe_float(info.get("beta")),
-        "sector": info.get("sector"),
-        "industry": info.get("industry"),
+        "sector": sector,
+        "industry": industry,
         # Extras used by the long-term matrix
-        "debt_to_equity": _safe_float(info.get("debtToEquity")),
-        "free_cashflow": _safe_float(info.get("freeCashflow")),
-        "operating_cashflow": _safe_float(info.get("operatingCashflow")),
-        "shares_outstanding": _safe_float(info.get("sharesOutstanding")),
-        "total_cash": _safe_float(info.get("totalCash")),
-        "total_debt": _safe_float(info.get("totalDebt")),
-        "current_ratio": _safe_float(info.get("currentRatio")),
+        "debt_to_equity": (
+            _safe_float(info.get("debtToEquity"))
+            if info.get("debtToEquity") is not None
+            else fundamentals.get("debt_to_equity")
+        ),
+        "free_cashflow": _safe_float(info.get("freeCashflow")) or fundamentals.get("free_cashflow"),
+        "operating_cashflow": (
+            _safe_float(info.get("operatingCashflow"))
+            or fundamentals.get("operating_cashflow")
+        ),
+        "shares_outstanding": (
+            _safe_float(info.get("sharesOutstanding"))
+            or fundamentals.get("shares_outstanding")
+        ),
+        "total_cash": _safe_float(info.get("totalCash")) or fundamentals.get("total_cash"),
+        "total_debt": _safe_float(info.get("totalDebt")) or fundamentals.get("total_debt"),
+        "current_ratio": (
+            _safe_float(info.get("currentRatio"))
+            if info.get("currentRatio") is not None
+            else fundamentals.get("current_ratio")
+        ),
         "quick_ratio": _safe_float(info.get("quickRatio")),
-        "profit_margin": _safe_float(info.get("profitMargins")),
-        "operating_margin": _safe_float(info.get("operatingMargins")),
-        "return_on_equity": _safe_float(info.get("returnOnEquity")),
-        "revenue_growth": _safe_float(info.get("revenueGrowth")),
-        "earnings_growth": _safe_float(info.get("earningsGrowth")),
-        "eps": _safe_float(info.get("trailingEps")),
+        "profit_margin": (
+            _safe_float(info.get("profitMargins"))
+            if info.get("profitMargins") is not None
+            else fundamentals.get("profit_margin")
+        ),
+        "operating_margin": (
+            _safe_float(info.get("operatingMargins"))
+            if info.get("operatingMargins") is not None
+            else fundamentals.get("operating_margin")
+        ),
+        "return_on_equity": (
+            _safe_float(info.get("returnOnEquity"))
+            if info.get("returnOnEquity") is not None
+            else fundamentals.get("return_on_equity")
+        ),
+        "revenue_growth": (
+            _safe_float(info.get("revenueGrowth"))
+            if info.get("revenueGrowth") is not None
+            else fundamentals.get("revenue_growth")
+        ),
+        "earnings_growth": (
+            _safe_float(info.get("earningsGrowth"))
+            if info.get("earningsGrowth") is not None
+            else fundamentals.get("earnings_growth")
+        ),
+        "eps": _safe_float(info.get("trailingEps")) or fundamentals.get("eps"),
         # Company profile for the description panel
-        "description": info.get("longBusinessSummary") or info.get("shortBusinessSummary"),
-        "description_he": translate_to_hebrew(
-            info.get("longBusinessSummary") or info.get("shortBusinessSummary")
+        "description": source_description or fallback_description,
+        "description_he": (
+            translate_to_hebrew(source_description)
+            if source_description
+            else fallback_description_he
         ),
         "website": info.get("website"),
         "country": info.get("country"),

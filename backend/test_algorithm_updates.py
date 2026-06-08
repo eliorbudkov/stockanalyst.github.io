@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import scanner
 from entries import compute_long_term_entry
+from main import _fallback_descriptions, _growth_rate, _timeseries_value
 from matrices import compute_long_term_score, compute_short_term_score
 from scanner import (
     ETF_THRESHOLD,
@@ -116,6 +117,32 @@ class ScanHostingSafetyTests(unittest.TestCase):
         ):
             self.assertIs(scanner.get_scan(force=True), seed)
             run_scan.assert_not_called()
+
+
+class CompanyProfileFallbackTests(unittest.TestCase):
+    def test_builds_description_from_search_profile_fields(self):
+        description, description_he = _fallback_descriptions(
+            "Apple Inc.", "Technology", "Consumer Electronics", "NASDAQ"
+        )
+        self.assertIn("Apple Inc.", description)
+        self.assertIn("Consumer Electronics", description)
+        self.assertIn("Apple Inc.", description_he)
+        self.assertIn("NASDAQ", description_he)
+
+    def test_requires_name_and_classification(self):
+        self.assertEqual(_fallback_descriptions(None, "Technology", None, None), (None, None))
+        self.assertEqual(_fallback_descriptions("Unknown", None, None, None), (None, None))
+
+    def test_reads_reported_and_point_in_time_values(self):
+        self.assertEqual(
+            _timeseries_value({"reportedValue": {"raw": 123.5}}),
+            123.5,
+        )
+        self.assertEqual(_timeseries_value({"dataValue": 0.004}), 0.004)
+
+    def test_growth_rate_uses_latest_two_periods(self):
+        self.assertAlmostEqual(_growth_rate([100.0, 125.0]), 0.25)
+        self.assertIsNone(_growth_rate([100.0]))
 
 
 class SwingProfileTests(unittest.TestCase):
