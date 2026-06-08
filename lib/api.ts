@@ -135,6 +135,16 @@ async function post<T>(
 // Returns true on 200 and false on 401; throws on network/other errors so the
 // login page can tell "wrong password" apart from "server still waking up".
 export async function authCheck(password: string): Promise<boolean> {
+  // Local development explicitly runs without authentication. Avoid a
+  // pointless network dependency on the login screen, especially after a
+  // backend restart or port change.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.NEXT_PUBLIC_AUTH_ALLOW_UNCONFIGURED_LOCAL === '1'
+  ) {
+    return true;
+  }
+
   // Login is usually the first contact, so it tends to hit a cold Render dyno.
   // A 401 is definitive (wrong password) and returns immediately; a timeout or
   // 5xx is retried once to ride out the ~50s cold-start wake.

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authCheck } from '@/lib/api';
 import { setStoredPassword } from '@/lib/auth';
 
@@ -15,6 +15,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const localAuthDisabled =
+    process.env.NODE_ENV === 'development' &&
+    process.env.NEXT_PUBLIC_AUTH_ALLOW_UNCONFIGURED_LOCAL === '1';
+
+  useEffect(() => {
+    if (localAuthDisabled) {
+      window.location.replace(safeNext());
+    }
+  }, [localAuthDisabled]);
+
+  if (localAuthDisabled) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-bg text-sm text-muted" dir="rtl">
+        טוען את סביבת הפיתוח המקומית…
+      </main>
+    );
+  }
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault();
