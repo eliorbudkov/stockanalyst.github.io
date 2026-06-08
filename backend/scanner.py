@@ -217,10 +217,8 @@ def _etf_entry_score(result: dict[str, Any]) -> Any:
 
 
 def _is_etf_short_qualified(result: dict[str, Any]) -> bool:
-    return (
-        _passes_final_gate(result.get("short_term_score"), SWING_THRESHOLD)
-        and _passes_final_gate(_etf_entry_score(result), SWING_OVERALL_THRESHOLD)
-    )
+    setup = result.get("swing_setup")
+    return bool(isinstance(setup, dict) and setup.get("qualified"))
 
 
 def _is_etf_long_qualified(result: dict[str, Any]) -> bool:
@@ -1138,7 +1136,10 @@ def run_scan(
     )
     short_term_etfs = sorted(
         (r for r in etfs_results if _is_etf_short_qualified(r)),
-        key=lambda r: -float(r.get("short_term_score") or 0.0),
+        key=lambda r: (
+            -float((r.get("swing_setup") or {}).get("success_rate") or 0.0),
+            -float((r.get("swing_setup") or {}).get("risk_reward") or 0.0),
+        ),
     )
     long_term_etfs = sorted(
         (r for r in etfs_results if _is_etf_long_qualified(r)),
@@ -1169,11 +1170,12 @@ def run_scan(
         return out
 
     def _tag_short_term_etf(r: dict[str, Any]) -> dict[str, Any]:
+        setup = r.get("swing_setup") or {}
         out = dict(r)
-        out["display_score"] = r["short_term_score"]
-        out["display_rationale"] = r.get("short_term_rationale", [])
+        out.pop("display_score", None)
+        out["display_rationale"] = setup.get("reasons", [])
         out["strategy"] = "etf_swing"
-        out["strategy_label"] = "Short-Term ETF"
+        out["strategy_label"] = "ETF Pre-Breakout"
         out["is_qualified"] = _is_etf_short_qualified(r)
         return out
 

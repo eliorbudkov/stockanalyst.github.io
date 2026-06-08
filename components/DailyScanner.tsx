@@ -41,13 +41,8 @@ const POLL_INTERVAL_MS = 25_000;
 const MAX_POLLS = 30;
 
 function sanitizeScanResult(result: ScanResult): ScanResult {
-  const swingThreshold = result.swing_threshold ?? 7;
-  const swingOverallThreshold = result.swing_overall_threshold ?? 7;
   const longTermThreshold = result.threshold ?? 7;
   const longTermOverallThreshold = result.long_term_overall_threshold ?? 7;
-  const etfShortThreshold = result.etf_short_term_threshold ?? swingThreshold;
-  const etfShortOverallThreshold =
-    result.etf_short_term_overall_threshold ?? swingOverallThreshold;
   const etfLongThreshold = result.etf_long_term_threshold ?? longTermThreshold;
   const etfLongOverallThreshold =
     result.etf_long_term_overall_threshold ?? longTermOverallThreshold;
@@ -60,9 +55,7 @@ function sanitizeScanResult(result: ScanResult): ScanResult {
     rounded(item.long_term_score) >= longTermThreshold &&
     rounded(item.overall_score) >= longTermOverallThreshold;
   const isShortTermEtf = (item: ScanItem) =>
-    item.kind === 'etf' &&
-    rounded(item.short_term_score) >= etfShortThreshold &&
-    rounded(item.overall_score ?? item.etf_score) >= etfShortOverallThreshold;
+    item.kind === 'etf' && item.swing_setup?.qualified === true;
   const isLongTermEtf = (item: ScanItem) =>
     item.kind === 'etf' &&
     rounded(item.long_term_score) >= etfLongThreshold &&
@@ -272,7 +265,7 @@ export function DailyScanner() {
           />
           <ScanSection
             title="קרנות סל לטווח קצר — ETF Swing"
-            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — ST ≥ ${(data.etf_short_term_threshold ?? data.swing_threshold ?? 7).toFixed(1)} וגם Overall ≥ ${(data.etf_short_term_overall_threshold ?? data.swing_overall_threshold ?? 7).toFixed(1)}`}
+            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — Cup & Handle בידית · RVOL ≥ ${(data.swing_min_rvol ?? 1.5).toFixed(2)} · R:R ≥ ${(data.swing_min_risk_reward ?? 1.08).toFixed(2)} · הצלחה ≥ ${(data.swing_min_success_rate ?? 60).toFixed(0)}%`}
             accent="#3ddc97"
             items={data.top_short_term_etfs || []}
           />
@@ -347,7 +340,9 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
   const isRed = sec?.is_red;
   const isGreen = sec?.is_green;
   const isQualified = item.is_qualified !== false;
-  const isPreBreakout = item.strategy === 'swing' && item.swing_setup;
+  const isPreBreakout =
+    (item.strategy === 'swing' || item.strategy === 'etf_swing') &&
+    item.swing_setup;
   const displayScore = item.display_score ?? item.final_score;
   const badgeScore = isPreBreakout
     ? (item.swing_setup?.success_rate ?? 0) / 10
@@ -442,10 +437,12 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
             </div>
 
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
-              {item.strategy === 'swing' && item.swing_setup?.risk_reward != null && (
+              {(item.strategy === 'swing' || item.strategy === 'etf_swing') &&
+                item.swing_setup?.risk_reward != null && (
                 <Chip label="R:R" value={`1:${item.swing_setup.risk_reward.toFixed(2)}`} color="#3ddc97" />
               )}
-              {item.strategy === 'swing' && item.swing_setup?.breakout_price != null && (
+              {(item.strategy === 'swing' || item.strategy === 'etf_swing') &&
+                item.swing_setup?.breakout_price != null && (
                 <Chip label="פריצה" value={`$${item.swing_setup.breakout_price.toFixed(2)}`} color="#6ea8ff" />
               )}
               {item.strategy === 'investment' && item.long_term_score !== undefined && (
@@ -454,14 +451,10 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
               {item.strategy === 'investment' && item.overall_score !== undefined && (
                 <ScoreChip label="Overall" value={item.overall_score} />
               )}
-              {item.strategy === 'etf_swing' && item.short_term_score !== undefined && (
-                <ScoreChip label="ST" value={item.short_term_score} />
-              )}
               {item.strategy === 'etf_investment' && item.long_term_score !== undefined && (
                 <ScoreChip label="LT" value={item.long_term_score} />
               )}
               {(item.strategy === 'etf' ||
-                item.strategy === 'etf_swing' ||
                 item.strategy === 'etf_investment') &&
                 item.overall_score !== undefined && (
                 <ScoreChip label="Overall" value={item.overall_score} />

@@ -57,7 +57,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "long_term_score": 7.0,
         }))
 
-    def test_etf_qualification_uses_overall_score_not_matrix_score(self):
+    def test_etf_short_qualification_uses_setup_not_scores(self):
         etf = {
             "kind": "etf",
             "overall_score": 7.3,
@@ -65,27 +65,35 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "etf_matrix_score": 9.0,
             "short_term_score": 8.1,
             "long_term_score": 6.9,
+            "swing_setup": {"qualified": True},
         }
         self.assertEqual(_etf_entry_score(etf), 7.3)
         self.assertTrue(_is_etf_qualified(etf))
         self.assertTrue(_is_etf_short_qualified(etf))
         self.assertFalse(_is_etf_long_qualified(etf))
 
+        etf["short_term_score"] = 1.0
+        etf["overall_score"] = 1.0
+        self.assertTrue(_is_etf_short_qualified(etf))
+
+        etf["swing_setup"] = {"qualified": False}
         etf["overall_score"] = 6.9
         self.assertFalse(_is_etf_qualified(etf))
 
-    def test_etf_short_and_long_scans_use_seven_point_strategy_gates(self):
+    def test_etf_short_setup_and_long_score_gates_are_independent(self):
         short_only = {
             "kind": "etf",
             "overall_score": 7.2,
             "short_term_score": 7.2,
             "long_term_score": 6.9,
+            "swing_setup": {"qualified": True},
         }
         long_only = {
             "kind": "etf",
             "overall_score": 7.7,
             "short_term_score": 6.9,
             "long_term_score": 7.2,
+            "swing_setup": {"qualified": False},
         }
         self.assertTrue(_is_etf_short_qualified(short_only))
         self.assertFalse(_is_etf_long_qualified(short_only))
@@ -211,6 +219,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "etf_score": 6.99,
             "short_term_score": 9.0,
             "long_term_score": 9.0,
+            "swing_setup": {"qualified": False},
         }
         payload = {
             "threshold": 8.0,
