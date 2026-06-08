@@ -70,6 +70,13 @@ app.add_middleware(
         ).split(",")
         if origin.strip()
     ],
+    # Vercel generates a unique hostname for every production deployment.
+    # Keep the regex scoped to this project so previews work without manually
+    # updating Render's ALLOWED_ORIGINS after every deploy.
+    allow_origin_regex=os.getenv(
+        "ALLOWED_ORIGIN_REGEX",
+        r"https://stockanalyst-github-io-emy4(?:-[a-z0-9-]+)?\.vercel\.app",
+    ),
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["Authorization", "Content-Type"],

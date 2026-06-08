@@ -38,6 +38,9 @@ GH_DISPATCH_TOKEN=ghp_...   # PAT for the on-demand scan button (Actions: read/w
 
 - For several allowed origins, use comma-separated values
   (e.g. add `http://localhost:3000` while testing locally).
+- Deployment-specific Vercel hostnames for this project are allowed by a
+  narrowly scoped backend regex, so a new Vercel deployment does not require
+  editing Render each time.
 - `GH_DISPATCH_TOKEN` is only needed for the "סרוק עכשיו" button. Without it the
   app still works; the button returns a clear "not configured" message.
 - Never put `APP_PASSWORD` in Git, in `render.yaml`, or in any Vercel variable.

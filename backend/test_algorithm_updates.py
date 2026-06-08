@@ -5,8 +5,9 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import scanner
+from fastapi.testclient import TestClient
 from entries import compute_long_term_entry
-from main import _calculate_beta, _fallback_descriptions, _growth_rate, _timeseries_value
+from main import app, _calculate_beta, _fallback_descriptions, _growth_rate, _timeseries_value
 from matrices import compute_long_term_score, compute_short_term_score
 from scanner import (
     ETF_THRESHOLD,
@@ -128,6 +129,23 @@ class GeneralScoreProfileTests(unittest.TestCase):
             compute_session_adjusted_rvol(volumes, dates[-1], after_close),
             0.25,
         )
+
+    def test_vercel_deployment_origin_is_allowed_by_cors(self):
+        origin = (
+            "https://stockanalyst-github-io-emy4-"
+            "2vmqwlv8m-elior-projects.vercel.app"
+        )
+        response = TestClient(app).options(
+            "/api/auth/check",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "authorization",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["access-control-allow-origin"], origin)
 
     def test_auxiliary_lists_cannot_leak_sub_seven_assets(self):
         self.assertFalse(
