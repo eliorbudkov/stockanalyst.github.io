@@ -71,7 +71,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "kind": "etf",
             "overall_score": 7.2,
             "short_term_score": 8.2,
-            "long_term_score": 8.5,
+            "long_term_score": 7.5,
         }
         long_only = {
             "kind": "etf",
@@ -194,7 +194,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "symbol": "LOW_OVERALL",
             "short_term_score": 7.99,
             "long_term_score": 8.5,
-            "overall_score": 7.49,
+            "overall_score": 6.99,
         }
         invalid_etf = {
             "kind": "etf",
@@ -411,9 +411,9 @@ class SwingProfileTests(unittest.TestCase):
 
 class LongTermSanityTests(unittest.TestCase):
     def test_scan_requires_long_term_and_overall_thresholds(self):
-        self.assertEqual(LONG_TERM_OVERALL_THRESHOLD, 7.5)
-        self.assertTrue(_is_long_term_qualified({"long_term_score": 8.0, "overall_score": 7.5}))
-        self.assertFalse(_is_long_term_qualified({"long_term_score": 8.0, "overall_score": 7.49}))
+        self.assertEqual(LONG_TERM_OVERALL_THRESHOLD, 7.0)
+        self.assertTrue(_is_long_term_qualified({"long_term_score": 8.0, "overall_score": 7.0}))
+        self.assertFalse(_is_long_term_qualified({"long_term_score": 8.0, "overall_score": 6.99}))
         self.assertFalse(_is_long_term_qualified({"long_term_score": 7.99, "overall_score": 9.0}))
 
     def test_dcf_anchor_is_blocked_above_twenty_percent(self):
