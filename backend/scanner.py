@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -97,6 +98,13 @@ _scan_lock = Lock()
 log = logging.getLogger(__name__)
 SCAN_CACHE_FILE = Path(__file__).parent / "data" / "scan.json"
 SCAN_CACHE_FILE.parent.mkdir(exist_ok=True)
+
+# Whether to run the heavy scan *in this process*. OFF by default: on a 512MB
+# free tier (Render) computing run_scan in-request spikes RSS past the limit
+# (OOM) and starves /api/analyze, so we serve the committed seed — which CI
+# regenerates daily — instead of ever scanning here. Local dev or a resourced
+# host can opt in with ENABLE_LIVE_SCAN=1.
+LIVE_SCAN_ENABLED = os.getenv("ENABLE_LIVE_SCAN", "").strip().lower() in ("1", "true", "yes", "on")
 
 _refresh_lock = Lock()
 _refreshing = False
@@ -848,6 +856,13 @@ def run_scan(
 def get_scan(force: bool = False) -> dict[str, Any]:
     now = time.time()
     have_cache = _cache["data"] is not None
+
+    # On a constrained host the heavy scan never runs in-process: serve the
+    # committed seed (CI refreshes it daily) and skip ALL computation — including
+    # the manual force rescan, which would otherwise OOM the 512MB dyno.
+    if not LIVE_SCAN_ENABLED and have_cache:
+        return _cache["data"]
+
     # The committed seed is never "fresh" — serving it must always kick a live
     # refresh, otherwise a recently-generated seed freezes the scan for a TTL.
     fresh = (
