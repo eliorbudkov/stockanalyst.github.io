@@ -20,6 +20,46 @@ type Props = {
   height?: number;
 };
 
+type ChartLayer =
+  | 'ma20'
+  | 'ma50'
+  | 'ma150'
+  | 'ma200'
+  | 'bollinger'
+  | 'vwap'
+  | 'volume'
+  | 'levels'
+  | 'risk'
+  | 'avp';
+
+type ChartLayers = Record<ChartLayer, boolean>;
+
+const CLEAN_LAYERS: ChartLayers = {
+  ma20: true,
+  ma50: true,
+  ma150: false,
+  ma200: false,
+  bollinger: false,
+  vwap: true,
+  volume: true,
+  levels: true,
+  risk: false,
+  avp: true,
+};
+
+const ALL_LAYERS: ChartLayers = {
+  ma20: true,
+  ma50: true,
+  ma150: true,
+  ma200: true,
+  bollinger: true,
+  vwap: true,
+  volume: true,
+  levels: true,
+  risk: true,
+  avp: true,
+};
+
 const MA_COLORS = {
   ma20: '#6ea8ff',
   ma50: '#ffb454',
@@ -31,8 +71,8 @@ const OVERLAY_COLORS = {
   bb: 'rgba(255, 255, 255, 0.45)',
   vwap: '#00d1ff',
   avp: '#6ea8ff',
-  avpValueArea: 'rgba(110, 168, 255, 0.42)',
-  avpOutside: 'rgba(140, 151, 194, 0.22)',
+  avpValueArea: 'rgba(110, 168, 255, 0.27)',
+  avpOutside: 'rgba(140, 151, 194, 0.12)',
   avpPoc: '#ffb454',
 } as const;
 
@@ -41,6 +81,7 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
   const profileCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [manualAnchorInput, setManualAnchorInput] = useState('');
+  const [layers, setLayers] = useState<ChartLayers>(CLEAN_LAYERS);
 
   const automaticAnchor = useMemo(
     () => findAutomaticAnchor(candles, levels?.support?.price ?? null),
@@ -69,11 +110,20 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
         fontFamily: 'inherit',
       },
       grid: {
-        vertLines: { color: '#1a2244' },
-        horzLines: { color: '#1a2244' },
+        vertLines: { color: 'rgba(38, 48, 90, 0.45)' },
+        horzLines: { color: 'rgba(38, 48, 90, 0.45)' },
       },
-      rightPriceScale: { borderColor: '#26305a' },
-      timeScale: { borderColor: '#26305a', timeVisible: true },
+      rightPriceScale: {
+        borderColor: '#26305a',
+        scaleMargins: { top: 0.08, bottom: layers.volume ? 0.18 : 0.08 },
+      },
+      timeScale: {
+        borderColor: '#26305a',
+        timeVisible: true,
+        rightOffset: 5,
+        barSpacing: 7,
+        minBarSpacing: 3,
+      },
       crosshair: { mode: CrosshairMode.Normal },
     });
     chartRef.current = chart;
@@ -96,19 +146,23 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
       })),
     );
 
-    const volSeries = chart.addHistogramSeries({
-      color: '#26305a',
-      priceFormat: { type: 'volume' },
-      priceScaleId: '',
-    });
-    volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
-    volSeries.setData(
-      candles.map((c) => ({
-        time: c.time as UTCTimestamp,
-        value: c.volume,
-        color: c.close >= c.open ? 'rgba(61,220,151,0.35)' : 'rgba(255,107,129,0.35)',
-      })),
-    );
+    if (layers.volume) {
+      const volSeries = chart.addHistogramSeries({
+        color: '#26305a',
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+      volSeries.priceScale().applyOptions({ scaleMargins: { top: 0.86, bottom: 0 } });
+      volSeries.setData(
+        candles.map((c) => ({
+          time: c.time as UTCTimestamp,
+          value: c.volume,
+          color: c.close >= c.open ? 'rgba(61,220,151,0.22)' : 'rgba(255,107,129,0.22)',
+        })),
+      );
+    }
 
     function addMA(series: (number | null)[] | undefined, color: string) {
       if (!series || series.length === 0) return;
@@ -123,10 +177,10 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
         .filter((p): p is { time: UTCTimestamp; value: number } => typeof p.value === 'number');
       line.setData(data);
     }
-    addMA(indicators.ma20_series, MA_COLORS.ma20);
-    addMA(indicators.ma50_series, MA_COLORS.ma50);
-    addMA(indicators.ma150_series, MA_COLORS.ma150);
-    addMA(indicators.ma200_series, MA_COLORS.ma200);
+    if (layers.ma20) addMA(indicators.ma20_series, MA_COLORS.ma20);
+    if (layers.ma50) addMA(indicators.ma50_series, MA_COLORS.ma50);
+    if (layers.ma150) addMA(indicators.ma150_series, MA_COLORS.ma150);
+    if (layers.ma200) addMA(indicators.ma200_series, MA_COLORS.ma200);
 
     function addOverlay(series: (number | null)[] | undefined, color: string, lineWidth: 1 | 2 = 1) {
       if (!series || series.length === 0) return;
@@ -141,43 +195,45 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
         .filter((p): p is { time: UTCTimestamp; value: number } => typeof p.value === 'number');
       line.setData(data);
     }
-    addOverlay(indicators.bb_upper_series, OVERLAY_COLORS.bb);
-    addOverlay(indicators.bb_middle_series, 'rgba(255, 255, 255, 0.25)');
-    addOverlay(indicators.bb_lower_series, OVERLAY_COLORS.bb);
-    addOverlay(indicators.vwap_series, OVERLAY_COLORS.vwap, 2);
+    if (layers.bollinger) {
+      addOverlay(indicators.bb_upper_series, OVERLAY_COLORS.bb);
+      addOverlay(indicators.bb_middle_series, 'rgba(255, 255, 255, 0.2)');
+      addOverlay(indicators.bb_lower_series, OVERLAY_COLORS.bb);
+    }
+    if (layers.vwap) addOverlay(indicators.vwap_series, OVERLAY_COLORS.vwap, 2);
 
-    if (levels?.resistance) {
+    if (layers.levels && levels?.resistance) {
       candleSeries.createPriceLine({
         price: levels.resistance.price,
         color: '#ff6b81',
-        lineWidth: 2,
+        lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
-        title: 'Resistance',
+        title: 'R',
       });
     }
-    if (levels?.support) {
+    if (layers.levels && levels?.support) {
       candleSeries.createPriceLine({
         price: levels.support.price,
         color: '#3ddc97',
-        lineWidth: 2,
+        lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
-        title: 'Support',
+        title: 'S',
       });
     }
 
-    if (anchorPrice) {
+    if (layers.avp && anchorPrice) {
       candleSeries.createPriceLine({
         price: anchorPrice,
         color: OVERLAY_COLORS.avp,
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
-        axisLabelVisible: true,
-        title: 'AVP Anchor',
+        axisLabelVisible: false,
+        title: '',
       });
     }
-    if (volumeProfile) {
+    if (layers.avp && volumeProfile) {
       candleSeries.createPriceLine({
         price: volumeProfile.poc,
         color: OVERLAY_COLORS.avpPoc,
@@ -191,16 +247,16 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
         color: OVERLAY_COLORS.avp,
         lineWidth: 1,
         lineStyle: LineStyle.Dotted,
-        axisLabelVisible: true,
-        title: 'VAH',
+        axisLabelVisible: false,
+        title: '',
       });
       candleSeries.createPriceLine({
         price: volumeProfile.valueAreaLow,
         color: OVERLAY_COLORS.avp,
         lineWidth: 1,
         lineStyle: LineStyle.Dotted,
-        axisLabelVisible: true,
-        title: 'VAL',
+        axisLabelVisible: false,
+        title: '',
       });
     }
 
@@ -243,7 +299,13 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
       ];
     };
 
-    if (risk?.entry_price && risk.stop_loss && risk.take_profit_1 && risk.take_profit_2) {
+    if (
+      layers.risk &&
+      risk?.entry_price &&
+      risk.stop_loss &&
+      risk.take_profit_1 &&
+      risk.take_profit_2
+    ) {
       renderRiskLines({
         entry: risk.entry_price,
         stop: risk.stop_loss.price,
@@ -254,7 +316,7 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
 
     const onRiskPlan = (event: Event) => {
       const detail = (event as CustomEvent<{ entry: number; stop: number; tp1: number; tp2: number }>).detail;
-      if (detail) renderRiskLines(detail);
+      if (detail && layers.risk) renderRiskLines(detail);
     };
     window.addEventListener('stock-analyst:risk-plan', onRiskPlan);
 
@@ -263,7 +325,7 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
     const drawVolumeProfile = () => {
       const canvas = profileCanvasRef.current;
       const host = ref.current;
-      if (!canvas || !host || !volumeProfile) return;
+      if (!canvas || !host || !volumeProfile || !layers.avp) return;
 
       const width = host.clientWidth;
       const displayHeight = height;
@@ -279,7 +341,7 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
       ctx.clearRect(0, 0, width, displayHeight);
 
       const maxVolume = Math.max(...volumeProfile.bins.map((bin) => bin.volume), 1);
-      const maxBarWidth = Math.min(width * 0.3, 250);
+      const maxBarWidth = Math.min(width * 0.2, 180);
       const rightOffset = 72;
 
       for (const bin of volumeProfile.bins) {
@@ -321,65 +383,130 @@ export function PriceChart({ candles, indicators, levels, risk, height = 460 }: 
       chart.remove();
       chartRef.current = null;
     };
-  }, [candles, indicators, levels, risk, height, anchorPrice, volumeProfile]);
+  }, [candles, indicators, levels, risk, height, anchorPrice, volumeProfile, layers]);
 
   return (
     <div>
+      <ChartToolbar
+        layers={layers}
+        onToggle={(layer) => setLayers((current) => ({ ...current, [layer]: !current[layer] }))}
+        onClean={() => setLayers(CLEAN_LAYERS)}
+        onShowAll={() => setLayers(ALL_LAYERS)}
+      />
       <div className="relative" style={{ height }}>
         <div ref={ref} style={{ width: '100%', height }} />
-        <canvas
-          ref={profileCanvasRef}
-          className="pointer-events-none absolute inset-0 z-10"
-          aria-hidden="true"
-        />
-      </div>
-      <div className="mt-3 flex flex-wrap items-end gap-3 rounded-md border border-border bg-panel2/60 p-3">
-        <div className="min-w-[180px]">
-          <div className="text-[11px] text-muted">מחיר עיגון AVP אוטומטי</div>
-          <div className="ltr mt-0.5 font-semibold text-accent">
-            ${automaticAnchor.price?.toFixed(2) ?? '—'}
-          </div>
-          <div className="text-[10px] text-muted">{automaticAnchor.reason}</div>
-        </div>
-        <label className="min-w-[170px] flex-1">
-          <span className="mb-1 block text-[11px] text-muted">מחיר עיגון ידני (Override)</span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            value={manualAnchorInput}
-            onChange={(event) => setManualAnchorInput(event.target.value)}
-            placeholder={automaticAnchor.price?.toFixed(2) ?? 'הזן מחיר'}
-            className="ltr h-9 w-full rounded-md border border-border bg-bg px-3 text-sm text-text outline-none transition focus:border-accent"
+        {layers.avp && (
+          <canvas
+            ref={profileCanvasRef}
+            className="pointer-events-none absolute inset-0 z-10"
+            aria-hidden="true"
           />
-        </label>
-        <button
-          type="button"
-          onClick={() => setManualAnchorInput('')}
-          disabled={!hasManualAnchor}
-          className="h-9 rounded-md border border-border bg-bg px-3 text-xs font-semibold text-muted transition hover:border-accent hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          חזרה לאוטומטי
-        </button>
-        {volumeProfile && (
-          <div className="ltr flex gap-3 text-[10px] text-muted">
-            <span>POC <strong className="text-warn">${volumeProfile.poc.toFixed(2)}</strong></span>
-            <span>VAH <strong className="text-accent">${volumeProfile.valueAreaHigh.toFixed(2)}</strong></span>
-            <span>VAL <strong className="text-accent">${volumeProfile.valueAreaLow.toFixed(2)}</strong></span>
-          </div>
         )}
       </div>
-      <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
-        <Legend color={MA_COLORS.ma20} label="MA 20" />
-        <Legend color={MA_COLORS.ma50} label="MA 50" />
-        <Legend color={MA_COLORS.ma150} label="MA 150" />
-        <Legend color={MA_COLORS.ma200} label="MA 200" />
-        <Legend color={OVERLAY_COLORS.bb} label="Bollinger" />
-        <Legend color={OVERLAY_COLORS.vwap} label="VWAP 20" />
-        <Legend color={OVERLAY_COLORS.avpValueArea} label="AVP Value Area" />
-        <Legend color={OVERLAY_COLORS.avpPoc} label="AVP POC" />
-      </div>
+      {layers.avp && (
+        <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-border pt-3">
+          <div className="min-w-[180px]">
+            <div className="text-[11px] text-muted">מחיר עיגון AVP אוטומטי</div>
+            <div className="ltr mt-0.5 font-semibold text-accent">
+              ${automaticAnchor.price?.toFixed(2) ?? '—'}
+            </div>
+            <div className="text-[10px] text-muted">{automaticAnchor.reason}</div>
+          </div>
+          <label className="min-w-[170px] flex-1">
+            <span className="mb-1 block text-[11px] text-muted">מחיר עיגון ידני (Override)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={manualAnchorInput}
+              onChange={(event) => setManualAnchorInput(event.target.value)}
+              placeholder={automaticAnchor.price?.toFixed(2) ?? 'הזן מחיר'}
+              className="ltr h-9 w-full rounded-md border border-border bg-bg px-3 text-sm text-text outline-none transition focus:border-accent"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => setManualAnchorInput('')}
+            disabled={!hasManualAnchor}
+            className="h-9 rounded-md border border-border bg-bg px-3 text-xs font-semibold text-muted transition hover:border-accent hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            חזרה לאוטומטי
+          </button>
+          {volumeProfile && (
+            <div className="ltr flex gap-3 text-[10px] text-muted">
+              <span>POC <strong className="text-warn">${volumeProfile.poc.toFixed(2)}</strong></span>
+              <span>VAH <strong className="text-accent">${volumeProfile.valueAreaHigh.toFixed(2)}</strong></span>
+              <span>VAL <strong className="text-accent">${volumeProfile.valueAreaLow.toFixed(2)}</strong></span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const LAYER_OPTIONS: Array<{ id: ChartLayer; label: string; color: string }> = [
+  { id: 'ma20', label: 'MA20', color: MA_COLORS.ma20 },
+  { id: 'ma50', label: 'MA50', color: MA_COLORS.ma50 },
+  { id: 'ma150', label: 'MA150', color: MA_COLORS.ma150 },
+  { id: 'ma200', label: 'MA200', color: MA_COLORS.ma200 },
+  { id: 'bollinger', label: 'Bollinger', color: OVERLAY_COLORS.bb },
+  { id: 'vwap', label: 'VWAP', color: OVERLAY_COLORS.vwap },
+  { id: 'volume', label: 'Volume', color: '#8c97c2' },
+  { id: 'levels', label: 'S/R', color: '#3ddc97' },
+  { id: 'risk', label: 'Risk', color: '#ff6b81' },
+  { id: 'avp', label: 'AVP', color: OVERLAY_COLORS.avpPoc },
+];
+
+function ChartToolbar({
+  layers,
+  onToggle,
+  onClean,
+  onShowAll,
+}: {
+  layers: ChartLayers;
+  onToggle: (layer: ChartLayer) => void;
+  onClean: () => void;
+  onShowAll: () => void;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-border pb-3">
+      {LAYER_OPTIONS.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          aria-pressed={layers[option.id]}
+          onClick={() => onToggle(option.id)}
+          className={
+            'flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-semibold transition ' +
+            (layers[option.id]
+              ? 'border-accent/50 bg-panel2 text-text'
+              : 'border-border bg-transparent text-muted opacity-60 hover:opacity-100')
+          }
+        >
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: layers[option.id] ? option.color : '#556080' }}
+          />
+          <span className="ltr">{option.label}</span>
+        </button>
+      ))}
+      <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
+      <button
+        type="button"
+        onClick={onClean}
+        className="h-8 rounded-md border border-border px-2.5 text-[11px] font-semibold text-muted transition hover:border-accent hover:text-text"
+      >
+        תצוגה נקייה
+      </button>
+      <button
+        type="button"
+        onClick={onShowAll}
+        className="h-8 rounded-md border border-border px-2.5 text-[11px] font-semibold text-muted transition hover:border-accent hover:text-text"
+      >
+        הצג הכל
+      </button>
     </div>
   );
 }
@@ -509,13 +636,4 @@ function buildAnchoredVolumeProfile(
     valueAreaHigh: bins[highIndex].high,
     valueAreaLow: bins[lowIndex].low,
   };
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5">
-      <span className="inline-block h-2 w-4 rounded" style={{ background: color }} />
-      <span>{label}</span>
-    </span>
-  );
 }
