@@ -77,10 +77,13 @@ uvicorn main:app --reload --port 8000
 ```powershell
 copy .env.local.example .env.local
 npm install
-npm run dev
+npm run dev:sync
 ```
 
 פתח את http://localhost:3000
+
+`dev:sync` מסרב לעלות כאשר קיימים שינויים מקומיים שלא נשמרו, מושך את
+`origin/main`, ומפעיל את ה־Frontend מול אותו Backend של Render שבו משתמש Vercel.
 
 חפש סימול (לדוגמה `NVDA`) → קבל גרף, אינדיקטורים, פונדמנטלס וציון 1-10.
 

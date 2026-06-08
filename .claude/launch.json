@@ -4,14 +4,8 @@
     {
       "name": "Next.js frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": ["run", "dev:sync"],
       "port": 3000
-    },
-    {
-      "name": "FastAPI backend",
-      "runtimeExecutable": "backend/.venv/Scripts/uvicorn.exe",
-      "runtimeArgs": ["main:app", "--reload", "--port", "8000", "--app-dir", "backend"],
-      "port": 8000
     }
   ]
 }
