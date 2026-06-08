@@ -15,6 +15,9 @@ from scanner import (
     MIN_FINAL_SCORE,
     SWING_OVERALL_THRESHOLD,
     SWING_THRESHOLD,
+    SWING_MIN_RISK_REWARD,
+    SWING_MIN_RVOL,
+    SWING_MIN_SUCCESS_RATE,
     ScanSeedUnavailable,
     _etf_entry_score,
     _is_etf_long_qualified,
@@ -22,6 +25,7 @@ from scanner import (
     _is_etf_short_qualified,
     _is_long_term_qualified,
     _is_swing_qualified,
+    _build_prebreakout_swing_setup,
     _long_term_prefilter_score,
     _merge_tier2_candidates,
     _passes_final_gate,
@@ -103,7 +107,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "top_etfs": [],
             "top": [stock],
         })
-        self.assertEqual(cleaned["top_swing_stocks"], [stock])
+        self.assertEqual(cleaned["top_swing_stocks"], [])
         self.assertEqual(cleaned["top_invest_stocks"], [stock])
 
     def test_scan_rvol_projects_incomplete_market_session(self):
@@ -185,6 +189,7 @@ class GeneralScoreProfileTests(unittest.TestCase):
             "short_term_score": 8.0,
             "long_term_score": 6.0,
             "overall_score": 7.0,
+            "swing_setup": {"qualified": True},
         }
         invalid_swing = {
             "kind": "stock",
@@ -445,10 +450,76 @@ class SwingProfileTests(unittest.TestCase):
         self.assertGreater(result.score, result.raw_score)
 
     def test_scan_requires_swing_and_overall_thresholds(self):
-        self.assertEqual(SWING_OVERALL_THRESHOLD, 7.0)
-        self.assertTrue(_is_swing_qualified({"short_term_score": 7.0, "overall_score": 7.0}))
-        self.assertFalse(_is_swing_qualified({"short_term_score": 7.0, "overall_score": 6.99}))
-        self.assertFalse(_is_swing_qualified({"short_term_score": 6.99, "overall_score": 9.0}))
+        self.assertTrue(_is_swing_qualified({
+            "short_term_score": 1.0,
+            "overall_score": 1.0,
+            "swing_setup": {"qualified": True},
+        }))
+        self.assertFalse(_is_swing_qualified({
+            "short_term_score": 10.0,
+            "overall_score": 10.0,
+            "swing_setup": {"qualified": False},
+        }))
+
+    def test_prebreakout_setup_requires_every_hard_gate(self):
+        cup = {
+            "detected": True,
+            "direction": "bullish",
+            "confidence": 64,
+            "level": 105,
+            "target": 120,
+            "stop": 98,
+            "geometry": {
+                "handle_low": {"price": 99},
+                "broke_out": False,
+            },
+        }
+        setup = _build_prebreakout_swing_setup(
+            current_price=100,
+            ma150=103,
+            rvol=1.8,
+            cup_pattern=cup,
+            rising_structure=True,
+        )
+        self.assertEqual(SWING_MIN_RVOL, 1.5)
+        self.assertEqual(SWING_MIN_RISK_REWARD, 1.08)
+        self.assertEqual(SWING_MIN_SUCCESS_RATE, 60.0)
+        self.assertTrue(setup["qualified"])
+        self.assertGreaterEqual(setup["risk_reward"], 1.08)
+
+        low_rvol = _build_prebreakout_swing_setup(
+            current_price=100,
+            ma150=103,
+            rvol=1.49,
+            cup_pattern=cup,
+            rising_structure=True,
+        )
+        self.assertFalse(low_rvol["qualified"])
+        self.assertFalse(low_rvol["checks"]["elevated_rvol"])
+
+    def test_prebreakout_setup_requires_sma150_cross_and_sixty_percent(self):
+        cup = {
+            "detected": True,
+            "direction": "bullish",
+            "confidence": 59,
+            "level": 102,
+            "target": 110,
+            "stop": 98,
+            "geometry": {
+                "handle_low": {"price": 99},
+                "broke_out": False,
+            },
+        }
+        setup = _build_prebreakout_swing_setup(
+            current_price=100,
+            ma150=103,
+            rvol=2.0,
+            cup_pattern=cup,
+            rising_structure=True,
+        )
+        self.assertFalse(setup["qualified"])
+        self.assertFalse(setup["checks"]["sma150_cross"])
+        self.assertFalse(setup["checks"]["success_rate"])
 
     def test_breakout_pattern_requires_positive_rvol(self):
         result = compute_short_term_score(

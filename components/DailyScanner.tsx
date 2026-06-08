@@ -54,9 +54,7 @@ function sanitizeScanResult(result: ScanResult): ScanResult {
   const rounded = (value?: number) => Math.round((value ?? 0) * 100) / 100;
 
   const isSwing = (item: ScanItem) =>
-    item.kind !== 'etf' &&
-    rounded(item.short_term_score) >= swingThreshold &&
-    rounded(item.overall_score) >= swingOverallThreshold;
+    item.kind !== 'etf' && item.swing_setup?.qualified === true;
   const isInvestment = (item: ScanItem) =>
     item.kind !== 'etf' &&
     rounded(item.long_term_score) >= longTermThreshold &&
@@ -262,7 +260,7 @@ export function DailyScanner() {
         <div className="mt-6 space-y-6">
           <ScanSection
             title="מניות לטווח קצר — Swing Setup"
-            subtitle={`${data.qualified_swing_count ?? 0}/${data.stocks_evaluated} מועמדים — ST ≥ ${(data.swing_threshold ?? 7).toFixed(1)} וגם Overall ≥ ${(data.swing_overall_threshold ?? 7).toFixed(1)}`}
+            subtitle={`${data.qualified_swing_count ?? 0}/${data.stocks_evaluated} מועמדים — Cup & Handle בידית · RVOL ≥ ${(data.swing_min_rvol ?? 1.5).toFixed(2)} · R:R ≥ ${(data.swing_min_risk_reward ?? 1.08).toFixed(2)} · הצלחה ≥ ${(data.swing_min_success_rate ?? 60).toFixed(0)}%`}
             accent="#6ea8ff"
             items={data.top_swing_stocks || []}
           />
@@ -305,10 +303,10 @@ function ScannerHeader({
       <Stat label="מועמדים" value={data ? data.qualified_count.toString() : '—'} accent="#3ddc97" />
       <Stat label="נסרקו" value={data ? data.evaluated_count.toString() : '—'} accent="#6ea8ff" />
       <Stat
-        label="ספי ST / LT"
+        label="ספי Swing / LT"
         value={
           data
-            ? `${(data.swing_threshold ?? 7).toFixed(1)} / ${data.threshold.toFixed(1)}`
+            ? `1:${(data.swing_min_risk_reward ?? 1.08).toFixed(2)} · ${(data.swing_min_success_rate ?? 60).toFixed(0)}% / ${data.threshold.toFixed(1)}`
             : '—'
         }
         accent="#ffb454"
@@ -349,8 +347,11 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
   const isRed = sec?.is_red;
   const isGreen = sec?.is_green;
   const isQualified = item.is_qualified !== false;
-  // Display the strategy-specific score, never a combined max/avg.
+  const isPreBreakout = item.strategy === 'swing' && item.swing_setup;
   const displayScore = item.display_score ?? item.final_score;
+  const badgeScore = isPreBreakout
+    ? (item.swing_setup?.success_rate ?? 0) / 10
+    : displayScore;
   return (
     <li>
       <a
@@ -369,12 +370,14 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
             <div
               className="grid h-12 w-12 place-items-center rounded-xl text-base font-extrabold"
               style={{
-                backgroundColor: `${scoreBg(displayScore)}33`,
-                color: scoreColor(displayScore),
-                border: `1.5px solid ${scoreColor(displayScore)}`,
+                backgroundColor: `${scoreBg(badgeScore)}33`,
+                color: scoreColor(badgeScore),
+                border: `1.5px solid ${scoreColor(badgeScore)}`,
               }}
             >
-              {displayScore.toFixed(1)}
+              {isPreBreakout
+                ? `${item.swing_setup?.success_rate.toFixed(0)}%`
+                : displayScore.toFixed(1)}
             </div>
             {item.strategy_label && (
               <span
@@ -439,12 +442,14 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
             </div>
 
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
-              {/* Only show the strategy-specific score — never both. */}
-              {item.strategy === 'swing' && item.short_term_score !== undefined && (
-                <ScoreChip label="ST" value={item.short_term_score} />
+              {item.strategy === 'swing' && item.swing_setup?.risk_reward != null && (
+                <Chip label="R:R" value={`1:${item.swing_setup.risk_reward.toFixed(2)}`} color="#3ddc97" />
               )}
-              {item.strategy === 'swing' && item.overall_score !== undefined && (
-                <ScoreChip label="Overall" value={item.overall_score} />
+              {item.strategy === 'swing' && item.swing_setup?.breakout_price != null && (
+                <Chip label="פריצה" value={`$${item.swing_setup.breakout_price.toFixed(2)}`} color="#6ea8ff" />
+              )}
+              {item.strategy === 'swing' && item.swing_setup?.sma150 != null && (
+                <Chip label="SMA150" value={`$${item.swing_setup.sma150.toFixed(2)}`} color="#b88cff" />
               )}
               {item.strategy === 'investment' && item.long_term_score !== undefined && (
                 <ScoreChip label="LT" value={item.long_term_score} />
@@ -472,9 +477,6 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
               )}
 
               {/* Strategy-specific context chips */}
-              {item.strategy === 'swing' && item.short_term_bonus !== undefined && item.short_term_bonus > 0 && (
-                <Chip label="בונוס" value={`+${item.short_term_bonus.toFixed(1)}`} color="#b88cff" />
-              )}
               {item.strategy === 'investment' && item.long_term_bonus !== undefined && item.long_term_bonus > 0 && (
                 <Chip label="Timing Bonus" value={`+${item.long_term_bonus.toFixed(2)}`} color="#3ddc97" />
               )}

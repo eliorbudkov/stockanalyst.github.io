@@ -61,6 +61,9 @@ SWING_OVERALL_THRESHOLD = 7.0
 LONG_TERM_OVERALL_THRESHOLD = 7.0
 MIN_FINAL_SCORE = 7.0
 ETF_THRESHOLD = MIN_FINAL_SCORE
+SWING_MIN_RVOL = 1.50
+SWING_MIN_RISK_REWARD = 1.08
+SWING_MIN_SUCCESS_RATE = 60.0
 DEFAULT_TOP_N = 5
 TIER1_MAX_CANDIDATES = 30
 SWING_TIER1_MAX_CANDIDATES = 15
@@ -196,10 +199,8 @@ def _is_long_term_qualified(
 
 
 def _is_swing_qualified(result: dict[str, Any]) -> bool:
-    return (
-        _passes_final_gate(result.get("short_term_score"), SWING_THRESHOLD)
-        and _passes_final_gate(result.get("overall_score"), SWING_OVERALL_THRESHOLD)
-    )
+    setup = result.get("swing_setup")
+    return bool(isinstance(setup, dict) and setup.get("qualified"))
 
 
 def _passes_final_gate(score: Any, threshold: float = MIN_FINAL_SCORE) -> bool:
@@ -289,6 +290,9 @@ def _sanitize_scan_payload(data: dict[str, Any]) -> dict[str, Any]:
         "threshold": DEFAULT_THRESHOLD,
         "swing_threshold": SWING_THRESHOLD,
         "swing_overall_threshold": SWING_OVERALL_THRESHOLD,
+        "swing_min_rvol": SWING_MIN_RVOL,
+        "swing_min_risk_reward": SWING_MIN_RISK_REWARD,
+        "swing_min_success_rate": SWING_MIN_SUCCESS_RATE,
         "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
         "minimum_final_score": MIN_FINAL_SCORE,
         "etf_threshold": ETF_THRESHOLD,
@@ -379,6 +383,135 @@ def compute_session_adjusted_rvol(
     return round(projected_volume / base, 2)
 
 
+def _has_rising_price_structure(sub: pd.DataFrame) -> bool:
+    """Require recent pivot highs and pivot lows to rise together."""
+    if sub is None or len(sub) < 35:
+        return False
+    recent = sub.tail(90).reset_index(drop=True)
+
+    def pivots(values: list[float], mode: str, k: int = 3) -> list[float]:
+        found: list[float] = []
+        for index in range(k, len(values) - k):
+            window = values[index - k:index + k + 1]
+            if mode == "high" and values[index] == max(window):
+                found.append(float(values[index]))
+            elif mode == "low" and values[index] == min(window):
+                found.append(float(values[index]))
+        return found
+
+    highs = pivots(recent["high"].astype(float).tolist(), "high")
+    lows = pivots(recent["low"].astype(float).tolist(), "low")
+    if len(highs) < 2 or len(lows) < 2:
+        return False
+    high_sample = highs[-3:]
+    low_sample = lows[-3:]
+    return (
+        all(right > left for left, right in zip(high_sample, high_sample[1:]))
+        and all(right > left for left, right in zip(low_sample, low_sample[1:]))
+    )
+
+
+def _build_prebreakout_swing_setup(
+    *,
+    current_price: float,
+    ma150: float | None,
+    rvol: float | None,
+    cup_pattern: dict[str, Any] | None,
+    rising_structure: bool,
+) -> dict[str, Any]:
+    """Evaluate the score-free pre-breakout Swing gate."""
+    pattern = cup_pattern or {}
+    geometry = pattern.get("geometry") or {}
+    breakout = _safe_float(pattern.get("level"))
+    target = _safe_float(pattern.get("target"))
+    stop = _safe_float(pattern.get("stop"))
+    success_rate = _safe_float(pattern.get("confidence")) or 0.0
+    handle_stage = bool(
+        pattern.get("detected")
+        and pattern.get("direction") == "bullish"
+        and geometry.get("handle_low")
+        and not geometry.get("broke_out")
+        and breakout is not None
+        and current_price < breakout
+    )
+    sma150_cross = bool(
+        ma150 is not None
+        and current_price < ma150
+        and breakout is not None
+        and breakout >= ma150
+    )
+    elevated_rvol = bool(rvol is not None and rvol >= SWING_MIN_RVOL)
+
+    risk_reward = None
+    if (
+        breakout is not None
+        and target is not None
+        and stop is not None
+        and stop < breakout < target
+    ):
+        risk = breakout - stop
+        if risk > 0:
+            risk_reward = round((target - breakout) / risk, 2)
+
+    checks = {
+        "cup_handle_stage": handle_stage,
+        "rising_structure": rising_structure,
+        "sma150_cross": sma150_cross,
+        "elevated_rvol": elevated_rvol,
+        "risk_reward": bool(
+            risk_reward is not None and risk_reward >= SWING_MIN_RISK_REWARD
+        ),
+        "success_rate": success_rate >= SWING_MIN_SUCCESS_RATE,
+    }
+    qualified = all(checks.values())
+    reasons = [
+        "Cup and Handle is in the handle stage before breakout",
+        "Recent pivot highs and lows are rising",
+        "Breakout resistance crosses above SMA150",
+        f"RVOL {float(rvol or 0.0):.2f}x",
+        f"R:R 1:{float(risk_reward or 0.0):.2f}",
+        f"Estimated success {success_rate:.0f}%",
+    ]
+    return {
+        "qualified": qualified,
+        "checks": checks,
+        "breakout_price": breakout,
+        "sma150": ma150,
+        "stop_price": stop,
+        "target_price": target,
+        "risk_reward": risk_reward,
+        "success_rate": round(success_rate, 1),
+        "rvol": rvol,
+        "reasons": reasons,
+    }
+
+
+def _compute_prebreakout_swing_setup(
+    sub: pd.DataFrame,
+    *,
+    rvol: float | None = None,
+) -> dict[str, Any]:
+    close = sub["close"]
+    current_price = float(close.iloc[-1])
+    ma150_series = sma(close, 150)
+    atr_series = atr(sub["high"], sub["low"], close, 14)
+    ma150_value = _safe_float(ma150_series.iloc[-1])
+    atr_value = _safe_float(atr_series.iloc[-1])
+    effective_rvol = (
+        rvol
+        if rvol is not None
+        else compute_session_adjusted_rvol(sub["volume"], sub.index[-1])
+    )
+    patterns = detect_patterns(sub, current_price, atr_value)
+    return _build_prebreakout_swing_setup(
+        current_price=current_price,
+        ma150=ma150_value,
+        rvol=effective_rvol,
+        cup_pattern=patterns.get("cup_and_handle"),
+        rising_structure=_has_rising_price_structure(sub),
+    )
+
+
 def _fetch_info(symbol: str) -> dict[str, Any]:
     """Fundamentals fetch for a single symbol. Used inside ThreadPoolExecutor.
 
@@ -445,6 +578,13 @@ def _evaluate(
     gap_v = compute_gap_pct(sub)
     sector_status = get_sector_status_for_symbol(symbol, sector)
     patterns_data = detect_patterns(sub, last_price, last_atr)
+    swing_setup = _build_prebreakout_swing_setup(
+        current_price=last_price,
+        ma150=last_ma150,
+        rvol=rvol_v,
+        cup_pattern=patterns_data.get("cup_and_handle"),
+        rising_structure=_has_rising_price_structure(sub),
+    )
 
     # Fundamentals — fetched in parallel by run_scan() and passed in via `info`.
     # Falls back to the hardcoded market cap dict if `.info` failed.
@@ -598,6 +738,7 @@ def _evaluate(
         "short_term_bonus": st.bonus,
         "short_term_bonus_reasons": st.bonus_reasons,
         "short_term_rationale": st.rationale[:3],
+        "swing_setup": swing_setup,
         "long_term_score": lt.score,
         "overall_score": round(overall.score, 2),
         "overall_score_breakdown": overall.breakdown,
@@ -709,20 +850,25 @@ def _build_tier1_rows(
 
 
 def _select_swing_tier1(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Select abnormal-volume candidates for the Swing funnel only."""
-    ranked = sorted(rows, key=lambda row: row["rvol"], reverse=True)
-    primary = [row for row in ranked if row["rvol"] >= TIER1_PRIMARY_RVOL]
-    selected = primary[:SWING_TIER1_MAX_CANDIDATES]
-
-    # Keep the expensive stage useful on quieter days, but never admit normal
-    # volume: fillers still need at least 1.15x relative volume.
-    if len(selected) < SWING_TIER1_MAX_CANDIDATES:
-        selected_symbols = {row["symbol"] for row in selected}
-        fillers = [
-            row for row in ranked
-            if row["symbol"] not in selected_symbols and row["rvol"] >= TIER1_FLOOR_RVOL
-        ]
-        selected.extend(fillers[: SWING_TIER1_MAX_CANDIDATES - len(selected)])
+    """Select only complete pre-breakout setups; no score-based fallback."""
+    selected: list[dict[str, Any]] = []
+    for row in rows:
+        if float(row.get("rvol") or 0.0) < SWING_MIN_RVOL:
+            continue
+        setup = _compute_prebreakout_swing_setup(
+            row["sub"],
+            rvol=float(row["rvol"]),
+        )
+        row["swing_setup"] = setup
+        if setup["qualified"]:
+            selected.append({**row, "swing_setup": setup})
+    selected.sort(
+        key=lambda row: (
+            -float(row["swing_setup"]["success_rate"]),
+            -float(row["swing_setup"]["risk_reward"] or 0.0),
+            -float(row["rvol"]),
+        )
+    )
     return selected[:SWING_TIER1_MAX_CANDIDATES]
 
 
@@ -989,7 +1135,10 @@ def run_scan(
             r for r in stocks_results
             if "swing" in (r.get("scan_paths") or []) and _is_swing_qualified(r)
         ),
-        key=lambda r: -r["short_term_score"],
+        key=lambda r: (
+            -float((r.get("swing_setup") or {}).get("success_rate") or 0.0),
+            -float((r.get("swing_setup") or {}).get("risk_reward") or 0.0),
+        ),
     )
     invest_stocks = sorted(
         (
@@ -1015,11 +1164,12 @@ def run_scan(
         # Swing uses its OWN, slightly lower threshold — patterns + RVOL
         # confirmation tend to top out below the strict 8.0 of the value
         # strategy.
+        setup = r.get("swing_setup") or {}
         out = dict(r)
-        out["display_score"] = r["short_term_score"]
-        out["display_rationale"] = r.get("short_term_rationale", [])
+        out.pop("display_score", None)
+        out["display_rationale"] = setup.get("reasons", [])
         out["strategy"] = "swing"
-        out["strategy_label"] = "Swing Setup"
+        out["strategy_label"] = "Pre-Breakout"
         out["is_qualified"] = _is_swing_qualified(r)
         return out
 
@@ -1193,6 +1343,9 @@ def run_scan(
         "threshold": score_threshold,
         "swing_threshold": SWING_THRESHOLD,
         "swing_overall_threshold": SWING_OVERALL_THRESHOLD,
+        "swing_min_rvol": SWING_MIN_RVOL,
+        "swing_min_risk_reward": SWING_MIN_RISK_REWARD,
+        "swing_min_success_rate": SWING_MIN_SUCCESS_RATE,
         "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
         "minimum_final_score": MIN_FINAL_SCORE,
         "etf_threshold": ETF_THRESHOLD,
@@ -1225,6 +1378,7 @@ def run_scan(
                 "short_term_score": r.get("short_term_score"),
                 "long_term_score": r.get("long_term_score"),
                 "overall_score": r.get("overall_score"),
+                "swing_setup": r.get("swing_setup"),
                 "swing_qualified": (
                     "swing" in (r.get("scan_paths") or [])
                     and _is_swing_qualified(r)
@@ -1241,6 +1395,35 @@ def run_scan(
                     float(item.get("long_term_score") or 0.0),
                 ),
             )
+        ],
+        "swing_tier1_diagnostics": [
+            {
+                "symbol": row["symbol"],
+                "rvol": round(float(row.get("rvol") or 0.0), 2),
+                "qualified": bool((row.get("swing_setup") or {}).get("qualified")),
+                "checks": (row.get("swing_setup") or {}).get("checks", {}),
+                "risk_reward": (row.get("swing_setup") or {}).get("risk_reward"),
+                "success_rate": (row.get("swing_setup") or {}).get("success_rate"),
+                "breakout_price": (row.get("swing_setup") or {}).get(
+                    "breakout_price"
+                ),
+                "sma150": (row.get("swing_setup") or {}).get("sma150"),
+            }
+            for row in sorted(
+                (
+                    row for row in tier1_rows
+                    if row.get("swing_setup") is not None
+                ),
+                key=lambda item: (
+                    -sum(
+                        bool(value)
+                        for value in (
+                            (item.get("swing_setup") or {}).get("checks") or {}
+                        ).values()
+                    ),
+                    -float(item.get("rvol") or 0.0),
+                ),
+            )[:30]
         ],
         "buckets": buckets,
         "near_miss": [

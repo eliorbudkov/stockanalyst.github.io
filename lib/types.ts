@@ -340,6 +340,25 @@ export type ScanItem = {
   long_term_raw?: number;
   long_term_bonus?: number;
   long_term_bonus_reasons?: string[];
+  swing_setup?: {
+    qualified: boolean;
+    checks: {
+      cup_handle_stage: boolean;
+      rising_structure: boolean;
+      sma150_cross: boolean;
+      elevated_rvol: boolean;
+      risk_reward: boolean;
+      success_rate: boolean;
+    };
+    breakout_price: number | null;
+    sma150: number | null;
+    stop_price: number | null;
+    target_price: number | null;
+    risk_reward: number | null;
+    success_rate: number;
+    rvol: number | null;
+    reasons: string[];
+  };
   // ETF-only fields
   etf_score?: number;
   etf_matrix_score?: number;
@@ -404,6 +423,9 @@ export type ScanResult = {
   threshold: number;
   swing_threshold?: number;
   swing_overall_threshold?: number;
+  swing_min_rvol?: number;
+  swing_min_risk_reward?: number;
+  swing_min_success_rate?: number;
   long_term_overall_threshold?: number;
   minimum_final_score?: number;
   etf_threshold?: number;
@@ -431,6 +453,16 @@ export type ScanResult = {
     overall_score: number;
     swing_qualified: boolean;
     long_term_qualified: boolean;
+  }>;
+  swing_tier1_diagnostics?: Array<{
+    symbol: string;
+    rvol: number;
+    qualified: boolean;
+    checks: Record<string, boolean>;
+    risk_reward: number | null;
+    success_rate: number | null;
+    breakout_price: number | null;
+    sma150: number | null;
   }>;
   fetched_at: number;
 };
