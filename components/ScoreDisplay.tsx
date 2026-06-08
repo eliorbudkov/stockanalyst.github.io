@@ -1,4 +1,4 @@
-import type { ScoreBreakdown } from '@/lib/types';
+import type { ScoreBreakdown, SectorStatus } from '@/lib/types';
 import { Card } from './Card';
 
 function scoreColor(score: number): string {
@@ -19,10 +19,12 @@ export function ScoreDisplay({
   score,
   breakdown,
   rationale,
+  sectorStatus,
 }: {
   score: number;
   breakdown: ScoreBreakdown;
   rationale: string[];
+  sectorStatus: SectorStatus | null;
 }) {
   const rounded = Math.round(score * 10) / 10;
 
@@ -33,6 +35,7 @@ export function ScoreDisplay({
           <div className={`ltr text-5xl font-extrabold sm:text-6xl ${scoreColor(rounded)}`}>{rounded}</div>
           <div className="mt-1 text-xs text-muted">מתוך 10</div>
           <div className={`mt-2 text-sm font-semibold ${scoreColor(rounded)}`}>{scoreLabel(rounded)}</div>
+          <SectorHeatmapStatus sectorStatus={sectorStatus} />
         </div>
 
         <div className="flex-1 space-y-2">
@@ -59,6 +62,38 @@ export function ScoreDisplay({
         </ul>
       )}
     </Card>
+  );
+}
+
+function SectorHeatmapStatus({ sectorStatus }: { sectorStatus: SectorStatus | null }) {
+  if (!sectorStatus) {
+    return (
+      <div className="mt-3 border-t border-border pt-3 text-xs text-muted">
+        סטטוס סקטור: לא זמין
+      </div>
+    );
+  }
+
+  const isPositive = sectorStatus.avg_change_pct >= 0;
+  const statusColor = isPositive ? 'bg-good' : 'bg-bad';
+  const textColor = isPositive ? 'text-good' : 'text-bad';
+
+  return (
+    <div className="mt-3 border-t border-border pt-3">
+      <div className="flex items-center justify-center gap-2 text-xs">
+        <span
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusColor}`}
+          aria-label={isPositive ? 'סקטור חיובי' : 'סקטור שלילי'}
+          title={isPositive ? 'סקטור חיובי לפי מפת החום' : 'סקטור שלילי לפי מפת החום'}
+        />
+        <span className="text-muted">Heatmap:</span>
+        <span className="font-semibold text-text">{sectorStatus.sector_label}</span>
+        <span className={`ltr font-semibold ${textColor}`}>
+          {sectorStatus.avg_change_pct > 0 ? '+' : ''}
+          {sectorStatus.avg_change_pct.toFixed(2)}%
+        </span>
+      </div>
+    </div>
   );
 }
 

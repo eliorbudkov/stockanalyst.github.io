@@ -91,6 +91,7 @@ export default async function StockPage({
             score={data.score}
             breakdown={data.score_breakdown}
             rationale={data.rationale}
+            sectorStatus={data.matrices.sector_status}
           />
         </div>
       </div>
