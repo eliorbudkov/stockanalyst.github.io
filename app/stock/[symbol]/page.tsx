@@ -1,4 +1,9 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import type { AnalysisResult } from '@/lib/types';
 import { QuoteHeader } from '@/components/QuoteHeader';
 import { PriceChart } from '@/components/PriceChart';
 import { IndicatorPanel } from '@/components/IndicatorPanel';
@@ -15,31 +20,59 @@ import { BehaviorSentimentPanel } from '@/components/BehaviorSentimentPanel';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { Card } from '@/components/Card';
 
-export const dynamic = 'force-dynamic';
+// Client-rendered so the shared password (held only in the browser) can be sent
+// straight to the backend. A server render would have to hold the secret itself,
+// which the security model forbids.
+export default function StockPage() {
+  const params = useParams<{ symbol: string }>();
+  const raw = Array.isArray(params.symbol) ? params.symbol[0] : params.symbol;
+  const sym = decodeURIComponent(raw ?? '').toUpperCase();
 
-export default async function StockPage({
-  params,
-}: {
-  params: Promise<{ symbol: string }>;
-}) {
-  const { symbol } = await params;
-  const sym = decodeURIComponent(symbol).toUpperCase();
+  const [data, setData] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  let data;
-  let error: string | null = null;
-  try {
-    data = await api.analyze(sym);
-    // Integrity gate: if the server response is for a *different* symbol
-    // (cache mismatch, race, manual override, etc.), refuse to render rather
-    // than show fundamentals of one ticker next to technicals of another.
-    const returnedSymbol = data?.symbol?.toUpperCase();
-    const quoteSymbol = data?.quote?.symbol?.toUpperCase();
-    if (returnedSymbol !== sym || quoteSymbol !== sym) {
-      error = `סתירת סימולים: ביקשנו ${sym} אך השרת החזיר ${returnedSymbol ?? '?'} / ${quoteSymbol ?? '?'}`;
-      data = undefined;
-    }
-  } catch (e) {
-    error = e instanceof Error ? e.message : 'שגיאה בלתי ידועה';
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setData(null);
+
+    (async () => {
+      try {
+        const res = await api.analyze(sym, '2y');
+        // Integrity gate: if the server response is for a *different* symbol
+        // (cache mismatch, race, manual override, etc.), refuse to render rather
+        // than show fundamentals of one ticker next to technicals of another.
+        const returnedSymbol = res?.symbol?.toUpperCase();
+        const quoteSymbol = res?.quote?.symbol?.toUpperCase();
+        if (returnedSymbol !== sym || quoteSymbol !== sym) {
+          if (!cancelled) {
+            setError(
+              `סתירת סימולים: ביקשנו ${sym} אך השרת החזיר ${returnedSymbol ?? '?'} / ${quoteSymbol ?? '?'}`,
+            );
+          }
+          return;
+        }
+        if (!cancelled) setData(res);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'שגיאה בלתי ידועה');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sym]);
+
+  if (loading) {
+    return (
+      <Card title={`טוען ניתוח — ${sym}`}>
+        <div className="grid h-44 place-items-center text-sm text-muted">טוען…</div>
+      </Card>
+    );
   }
 
   if (error || !data) {

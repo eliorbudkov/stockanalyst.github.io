@@ -12,6 +12,12 @@ services:
         value: 3.12.3
       - key: ENABLE_LIVE_SCAN
         value: "0"
+      # Single shared site password. Set the real value in the Render dashboard
+      # (Environment tab) — never commit it here. Its presence turns on auth.
+      - key: APP_PASSWORD
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
       - key: GH_REPO
         value: eliorbudkov/stockanalyst.github.io
       - key: GH_WORKFLOW

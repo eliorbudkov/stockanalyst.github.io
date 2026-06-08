@@ -33,11 +33,19 @@ if ($localHead.Trim() -ne $remoteHead.Trim()) {
 }
 
 $envFile = Join-Path $repoRoot ".env.local"
-$envContent = @"
+if (-not (Test-Path -LiteralPath $envFile)) {
+    $envContent = @"
 # Local frontend uses the same production backend as Vercel.
 NEXT_PUBLIC_API_URL=https://stockanalyst-github-io.onrender.com
+NEXT_PUBLIC_AUTH_ALLOW_UNCONFIGURED_LOCAL=1
 "@
-[System.IO.File]::WriteAllText($envFile, $envContent, [System.Text.UTF8Encoding]::new($false))
+    [System.IO.File]::WriteAllText($envFile, $envContent, [System.Text.UTF8Encoding]::new($false))
+} else {
+    $envContent = Get-Content -LiteralPath $envFile -Raw
+    if ($envContent -notmatch '(?m)^NEXT_PUBLIC_API_URL=') {
+        Add-Content -LiteralPath $envFile -Value "`nNEXT_PUBLIC_API_URL=https://stockanalyst-github-io.onrender.com"
+    }
+}
 
 $nextDir = Join-Path $repoRoot ".next"
 if (Test-Path -LiteralPath $nextDir) {

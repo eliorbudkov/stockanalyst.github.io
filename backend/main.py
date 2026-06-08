@@ -24,13 +24,15 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 # Load backend/.env (ANTHROPIC_API_KEY, etc.) before any module that reads env.
 load_dotenv(Path(__file__).parent / ".env")
 
 from behavior_sentiment import get_behavior_sentiment
+from auth import auth_enabled, authenticate_request
 from entries import compute_long_term_entry, compute_short_term_entry, entries_to_dict
 from fear_greed import get_fear_greed
 from global_liquidity import get_global_liquidity, snapshot_to_dict
@@ -51,15 +53,51 @@ from scoring import compute_score
 from translate import translate_to_hebrew
 from trump_holdings import get_trump_holdings, is_trump_held
 
-app = FastAPI(title="Stock Analyst API", version="0.1.0")
+app = FastAPI(
+    title="Stock Analyst API",
+    version="0.1.0",
+    docs_url=None if auth_enabled() else "/docs",
+    redoc_url=None if auth_enabled() else "/redoc",
+    openapi_url=None if auth_enabled() else "/openapi.json",
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten in production
-    allow_credentials=False,
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv(
+            "ALLOWED_ORIGINS",
+            "http://localhost:3000",
+        ).split(",")
+        if origin.strip()
+    ],
+    allow_credentials=True,
     allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type"],
 )
+
+
+@app.middleware("http")
+async def require_supabase_auth(request: Request, call_next):
+    if request.method == "OPTIONS" or not request.url.path.startswith("/api/"):
+        return await call_next(request)
+    try:
+        request.state.user = authenticate_request(request)
+    except HTTPException as exc:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=exc.headers,
+        )
+    return await call_next(request)
+
+
+@app.get("/api/auth/check")
+def auth_check() -> dict[str, bool]:
+    """Lightweight auth probe for the login page. The http middleware runs
+    authenticate_request before this handler, so a 200 means the shared password
+    (or Supabase JWT) was accepted; a wrong/missing one yields 401."""
+    return {"ok": True}
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
