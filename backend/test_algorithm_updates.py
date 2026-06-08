@@ -322,6 +322,43 @@ class SwingProfileTests(unittest.TestCase):
     def test_swing_threshold_is_eight(self):
         self.assertEqual(SWING_THRESHOLD, 8.0)
 
+    def test_negative_social_sentiment_is_not_normalized_out(self):
+        common = {
+            "price": 110,
+            "ma20": 100,
+            "ma50": 95,
+            "rsi14": 65,
+            "vwap": 102,
+            "rvol": 1.8,
+            "gap_pct": 4.0,
+            "patterns": None,
+            "sector_status": {
+                "avg_change_pct": 2.0,
+                "sector_label": "Technology",
+            },
+            "global_liquidity": {"score": 6.5},
+        }
+        without_sentiment = compute_short_term_score(
+            **common,
+            behavior=None,
+        )
+        with_negative_sentiment = compute_short_term_score(
+            **common,
+            behavior={
+                "social_sentiment": {"score": 2.5},
+                "short_interest": {},
+            },
+        )
+
+        self.assertLess(with_negative_sentiment.score, without_sentiment.score)
+        sentiment = next(
+            category
+            for category in with_negative_sentiment.categories
+            if "סנטימנט" in category.name
+        )
+        self.assertFalse(sentiment.skipped)
+        self.assertEqual(sentiment.score, 3.5)
+
     def test_scan_requires_swing_and_overall_thresholds(self):
         self.assertEqual(SWING_OVERALL_THRESHOLD, 7.0)
         self.assertTrue(_is_swing_qualified({"short_term_score": 8.0, "overall_score": 7.0}))

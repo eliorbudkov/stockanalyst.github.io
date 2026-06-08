@@ -25,6 +25,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import yfinance as yf
 
+from behavior_sentiment import get_behavior_sentiment
 from etf_metrics import (
     compute_net_inflows,
     compute_weighted_debt_equity,
@@ -381,6 +382,7 @@ def _evaluate(
     fg_data: dict[str, Any] | None,
     info: dict[str, Any] | None = None,
     gli_data: dict[str, Any] | None = None,
+    behavior_data: dict[str, Any] | None = None,
     *,
     is_etf: bool = False,
 ) -> dict[str, Any] | None:
@@ -490,7 +492,7 @@ def _evaluate(
         rvol=rvol_v,
         gap_pct=gap_v,
         patterns=patterns_data,
-        behavior=None,
+        behavior=behavior_data,
         sector_status=sector_status,
         global_liquidity=gli_data,
         trump_held=trump_flag,
@@ -514,7 +516,7 @@ def _evaluate(
         vwap=last_vwap,
         patterns=patterns_data,
         fear_greed=fg_data,
-        behavior_sentiment=None,
+        behavior_sentiment=behavior_data,
         sector_status=sector_status,
         global_liquidity=gli_data,
     )
@@ -550,7 +552,7 @@ def _evaluate(
         revenue_growth=revenue_growth,
         earnings_growth=earnings_growth,
         fear_greed=fg_data,
-        behavior=None,
+        behavior=behavior_data,
         sector_status=sector_status,
         global_liquidity=gli_data,
         rvol=rvol_v,
@@ -788,6 +790,10 @@ def run_scan(
             return None
         try:
             info = _fetch_info(symbol)
+            try:
+                behavior_data = get_behavior_sentiment(symbol, force=False)
+            except Exception:
+                behavior_data = None
             return _evaluate(
                 symbol,
                 info.get("longName") or info.get("shortName") or name,
@@ -796,6 +802,7 @@ def run_scan(
                 fg_data,
                 info,
                 gli_data,
+                behavior_data,
                 is_etf=True,
             )
         except Exception:
