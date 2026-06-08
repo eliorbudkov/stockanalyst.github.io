@@ -297,45 +297,29 @@ def behavior_sentiment_score(behavior_sentiment: dict | None) -> tuple[float, st
     return _clip(score), "התנהגות: " + "; ".join(parts)
 
 
-def market_climate_score(
-    fear_greed: dict | None,
-    sector_status: dict | None,
-    global_liquidity: dict | None,
-) -> tuple[float, str]:
-    """Blend liquidity, sector heatmap and fear into one normalized category."""
-    scores: list[float] = []
-    notes: list[str] = []
+def heatmap_score(sector_status: dict | None) -> tuple[float, str]:
+    """Standalone sector heatmap category, based on sector breadth (avg change).
 
-    if global_liquidity and global_liquidity.get("score") is not None:
-        liquidity = _clip(float(global_liquidity["score"]))
-        scores.append(liquidity)
-        notes.append(f"נזילות {liquidity:.1f}")
+    Global liquidity and Fear & Greed are intentionally excluded — they are no
+    longer part of the general entry score.
+    """
+    if not sector_status:
+        return 5.0, "Heatmap סקטור: נתונים לא זמינים"
 
-    if sector_status:
-        avg = float(sector_status.get("avg_change_pct") or 0.0)
-        heatmap = 9.0 if avg >= 1.5 else 7.5 if avg >= 0.3 else 5.5 if avg > -0.3 else 4.0 if avg > -1.5 else 2.5
-        scores.append(heatmap)
-        notes.append(f"Heatmap {avg:+.2f}%")
-
-    if fear_greed and fear_greed.get("score") is not None:
-        fear, _ = fear_greed_score(fear_greed)
-        scores.append(fear)
-        notes.append(f"Fear & Greed {float(fear_greed['score']):.0f}")
-
-    if not scores:
-        return 5.0, "אקלים שוק: נתונים לא זמינים"
-    return _clip(sum(scores) / len(scores)), "אקלים שוק: " + "; ".join(notes)
+    avg = float(sector_status.get("avg_change_pct") or 0.0)
+    heatmap = 9.0 if avg >= 1.5 else 7.5 if avg >= 0.3 else 5.5 if avg > -0.3 else 4.0 if avg > -1.5 else 2.5
+    return _clip(heatmap), f"Heatmap סקטור: {avg:+.2f}%"
 
 
 WEIGHTS = {
-    "trend": 0.15,
+    "trend": 0.20,
     "momentum": 0.13,
     "advanced_technicals": 0.13,
     "volatility": 0.10,
-    "volume": 0.08,
+    "volume": 0.10,
     "fundamentals": 0.13,
     "patterns": 0.08,
-    "market_climate": 0.15,
+    "heatmap": 0.08,
     "behavior_sentiment": 0.05,
 }
 
@@ -376,7 +360,7 @@ def compute_score(
     volu, vol_msg = volume_score(volume_series)
     fund, f_msg = fundamentals_score(pe, pb, beta)
     patt, p_msg = patterns_score(patterns)
-    climate, climate_msg = market_climate_score(fear_greed, sector_status, global_liquidity)
+    heat, heat_msg = heatmap_score(sector_status)
     beh, beh_msg = behavior_sentiment_score(behavior_sentiment)
 
     final = _clip(
@@ -387,7 +371,7 @@ def compute_score(
         + volu * WEIGHTS["volume"]
         + fund * WEIGHTS["fundamentals"]
         + patt * WEIGHTS["patterns"]
-        + climate * WEIGHTS["market_climate"]
+        + heat * WEIGHTS["heatmap"]
         + beh * WEIGHTS["behavior_sentiment"]
     )
 
@@ -401,8 +385,8 @@ def compute_score(
             "volume": round(volu, 2),
             "fundamentals": round(fund, 2),
             "patterns": round(patt, 2),
-            "market_climate": round(climate, 2),
+            "heatmap": round(heat, 2),
             "behavior_sentiment": round(beh, 2),
         },
-        rationale=[t_msg, m_msg, a_msg, v_msg, vol_msg, f_msg, p_msg, climate_msg, beh_msg],
+        rationale=[t_msg, m_msg, a_msg, v_msg, vol_msg, f_msg, p_msg, heat_msg, beh_msg],
     )

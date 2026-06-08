@@ -39,14 +39,14 @@ export function ScoreDisplay({
         </div>
 
         <div className="flex-1 space-y-2">
-          <Bar label="מגמה" value={breakdown.trend} weight="15%" />
+          <Bar label="מגמה" value={breakdown.trend} weight="20%" />
           <Bar label="מומנטום (RSI)" value={breakdown.momentum} weight="13%" />
           <Bar label="MACD / Bollinger / VWAP" value={breakdown.advanced_technicals} weight="13%" />
           <Bar label="תנודתיות (ATR)" value={breakdown.volatility} weight="10%" />
-          <Bar label="נפח מסחר" value={breakdown.volume} weight="8%" />
+          <Bar label="נפח מסחר" value={breakdown.volume} weight="10%" />
           <Bar label="פונדמנטלס" value={breakdown.fundamentals} weight="13%" />
           <Bar label="תבניות טכניות" value={breakdown.patterns} weight="8%" />
-          <Bar label="אקלים שוק — נזילות / Heatmap / פחד" value={breakdown.market_climate} weight="15%" />
+          <Bar label="Heatmap סקטוריאלי" value={breakdown.heatmap} weight="8%" />
           <Bar label="התנהגות — Insider / Short" value={breakdown.behavior_sentiment} weight="5%" />
         </div>
       </div>

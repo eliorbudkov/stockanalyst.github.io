@@ -66,7 +66,7 @@ export type ScoreBreakdown = {
   volume: number;
   fundamentals: number;
   patterns: number;
-  market_climate: number;
+  heatmap: number;
   behavior_sentiment: number;
 };
 

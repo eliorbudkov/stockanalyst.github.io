@@ -27,7 +27,7 @@ from scanner import (
     compute_session_adjusted_rvol,
     _sanitize_scan_payload,
 )
-from scoring import WEIGHTS, behavior_sentiment_score, market_climate_score
+from scoring import WEIGHTS, behavior_sentiment_score, heatmap_score
 from trump_holdings import SOURCE_DATE, is_source_fresh, is_trump_held
 
 
@@ -223,9 +223,11 @@ class GeneralScoreProfileTests(unittest.TestCase):
 
     def test_general_weights_match_new_profile(self):
         self.assertAlmostEqual(sum(WEIGHTS.values()), 1.0)
-        self.assertEqual(WEIGHTS["trend"], 0.15)
-        self.assertEqual(WEIGHTS["market_climate"], 0.15)
+        self.assertEqual(WEIGHTS["trend"], 0.20)
+        self.assertEqual(WEIGHTS["volume"], 0.10)
+        self.assertEqual(WEIGHTS["heatmap"], 0.08)
         self.assertEqual(WEIGHTS["behavior_sentiment"], 0.05)
+        self.assertNotIn("market_climate", WEIGHTS)
 
     def test_behavior_uses_only_insider_and_short(self):
         behavior = {
@@ -242,13 +244,14 @@ class GeneralScoreProfileTests(unittest.TestCase):
         self.assertIn("Short", label)
         self.assertNotIn("Social", label)
 
-    def test_market_climate_blends_available_inputs(self):
-        score, _ = market_climate_score(
-            {"score": 40},
-            {"avg_change_pct": 0.5},
-            {"score": 6.5},
-        )
-        self.assertAlmostEqual(score, (8.0 + 7.5 + 6.5) / 3)
+    def test_heatmap_uses_sector_status_only(self):
+        # Sector breadth of +0.5% maps to the 7.5 band; liquidity / fear inputs
+        # are no longer part of the general score.
+        score, _ = heatmap_score({"avg_change_pct": 0.5})
+        self.assertAlmostEqual(score, 7.5)
+        # Missing sector data falls back to a neutral 5.0.
+        neutral, _ = heatmap_score(None)
+        self.assertAlmostEqual(neutral, 5.0)
 
 
 class ScanHostingSafetyTests(unittest.TestCase):
