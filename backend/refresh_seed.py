@@ -1,9 +1,9 @@
 """Regenerate the committed cold-start scan seed (backend/data/scan.json).
 
-Run by the scheduled GitHub Action (.github/workflows/refresh-seed.yml) once per
-trading day so the baseline a cold Render dyno serves on first paint is at most a
-day old. The in-request background refresh (scanner.get_scan) keeps data current
-*within* a session; this keeps the committed *starting point* fresh too.
+Run on demand by the GitHub Action (.github/workflows/refresh-seed.yml), which
+the in-app "scan" button dispatches via the backend. GitHub's runners (7GB RAM)
+run the heavy scan the 512MB Render dyno can't; the regenerated seed is committed
+and pushed, and Render auto-deploys it so the app serves fresh data.
 
 Exits non-zero WITHOUT writing if the scan yields nothing, so a transient data
 outage can never overwrite a good seed with an empty one.

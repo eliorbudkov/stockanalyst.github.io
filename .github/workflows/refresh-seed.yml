@@ -1,13 +1,14 @@
 name: Refresh scan seed
 
-# Regenerates the committed cold-start seed (backend/data/scan.json) once per
-# trading day so a fresh Render dyno serves recent data on first paint. The push
-# triggers Render's auto-deploy, baking the new seed into the deploy image.
+# Regenerates the committed cold-start seed (backend/data/scan.json) ON DEMAND.
+# The in-app "scan" button calls the backend (POST /api/scan/trigger), which
+# dispatches this workflow so the heavy scan runs on GitHub's 7GB runners — not
+# the 512MB Render dyno, which OOMs. The push of the regenerated seed triggers
+# Render's auto-deploy, baking fresh data into the deploy image.
 on:
-  schedule:
-    # 22:00 UTC, Mon-Fri — after the US market close (16:00 ET, year-round).
-    - cron: "0 22 * * 1-5"
-  workflow_dispatch: {} # also runnable on demand from the Actions tab
+  # On-demand only — no schedule. The scan runs only when the user clicks "scan",
+  # to conserve resources. Still runnable manually from the Actions tab.
+  workflow_dispatch: {}
 
 # Allow the default GITHUB_TOKEN to push the regenerated seed back to main.
 permissions:

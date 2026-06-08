@@ -9,7 +9,12 @@ Run locally:
 """
 from __future__ import annotations
 
+import json
 import math
+import os
+import time
+import urllib.error
+import urllib.request
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -51,7 +56,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # tighten in production
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -123,6 +128,73 @@ def scan(force: bool = Query(False)) -> dict[str, Any]:
         return get_scan(force=force)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Scan failed: {e}")
+
+
+# ── On-demand scan trigger ───────────────────────────────────────────────────
+# The heavy market scan never runs on this 512MB free-tier dyno — it OOMs (see
+# scanner.LIVE_SCAN_ENABLED, default off). Instead the in-app "scan" button asks
+# GitHub Actions to run it on a 7GB runner: this dispatches refresh-seed.yml,
+# which regenerates backend/data/scan.json and pushes it, auto-deploying a fresh
+# seed here (~5-10 min). The PAT lives ONLY in Render's env (GH_DISPATCH_TOKEN) —
+# never in git. Without it the endpoint is a no-op 503.
+GH_REPO = os.getenv("GH_REPO", "eliorbudkov/stockanalyst.github.io")
+GH_WORKFLOW = os.getenv("GH_WORKFLOW", "refresh-seed.yml")
+GH_REF = os.getenv("GH_REF", "main")
+_SCAN_TRIGGER_COOLDOWN_S = 90  # block accidental double-clicks / spam dispatches
+_last_scan_trigger = 0.0
+
+
+@app.post("/api/scan/trigger")
+def scan_trigger() -> dict[str, Any]:
+    global _last_scan_trigger
+    token = os.getenv("GH_DISPATCH_TOKEN", "").strip()
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="הפעלת סריקה אינה מוגדרת בשרת (חסר GH_DISPATCH_TOKEN).",
+        )
+
+    now = time.time()
+    since = now - _last_scan_trigger
+    if since < _SCAN_TRIGGER_COOLDOWN_S:
+        return {
+            "status": "already_running",
+            "retry_after_seconds": int(_SCAN_TRIGGER_COOLDOWN_S - since),
+        }
+
+    url = (
+        f"https://api.github.com/repos/{GH_REPO}"
+        f"/actions/workflows/{GH_WORKFLOW}/dispatches"
+    )
+    req = urllib.request.Request(
+        url,
+        data=json.dumps({"ref": GH_REF}).encode("utf-8"),
+        method="POST",
+    )
+    req.add_header("Authorization", f"Bearer {token}")
+    req.add_header("Accept", "application/vnd.github+json")
+    req.add_header("X-GitHub-Api-Version", "2022-11-28")
+    req.add_header("User-Agent", "stock-analyst")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            status = resp.status
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")[:300]
+        raise HTTPException(status_code=502, detail=f"GitHub dispatch {e.code}: {body}")
+    except Exception as e:  # noqa: BLE001 - surface any network failure
+        raise HTTPException(status_code=502, detail=f"GitHub dispatch error: {e}")
+
+    if status not in (201, 202, 204):
+        raise HTTPException(status_code=502, detail=f"GitHub dispatch HTTP {status}")
+
+    _last_scan_trigger = now
+    baseline = None
+    try:
+        baseline = get_scan(force=False).get("fetched_at")
+    except Exception:  # noqa: BLE001 - baseline is best-effort
+        pass
+    return {"status": "triggered", "baseline_fetched_at": baseline, "eta_seconds": 480}
 
 
 @app.get("/api/holdings/trump")

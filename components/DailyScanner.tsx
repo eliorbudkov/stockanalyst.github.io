@@ -33,58 +33,108 @@ function strategyAccent(strategy?: string): string {
   return '#8c97c2';
 }
 
+// On-demand scan polling cadence: after dispatching the GitHub run we re-check
+// the seed every 25s for up to ~12.5 min, covering the workflow + redeploy.
+const POLL_INTERVAL_MS = 25_000;
+const MAX_POLLS = 30;
+
 export function DailyScanner() {
   const [data, setData] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [scanMsg, setScanMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, setTick] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoadStartedRef = useRef(false);
-  // Stale-while-revalidate: a cold server serves cached/seed data instantly and
-  // refreshes in the background (~90s). These let us poll a few times to pick up
-  // the fresh result without the user having to hit "rescan".
-  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const staleRetryRef = useRef(0);
+  // On-demand scan: the "scan" button dispatches a GitHub Actions run (the 512MB
+  // dyno can't scan in-process — it OOMs). After dispatch we poll api.scan()
+  // until fetched_at advances past the pre-scan baseline, i.e. the workflow
+  // finished and Render redeployed the fresh seed (~5-10 min).
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const baselineRef = useRef(0);
+  const pollCountRef = useRef(0);
 
-  async function load(force = false) {
+  // Display the latest committed seed. This does NOT run a scan — on the free
+  // tier api.scan() returns the seed with zero compute — so it's safe on mount.
+  async function load() {
     try {
       setError(null);
-      if (force) setScanning(true);
-      else if (!data) setLoading(true);
-      const res = await api.scan(force);
+      if (!data) setLoading(true);
+      const res = await api.scan(false);
       setData(res);
-
-      // If the server handed back stale cached/seed data (cold start), it is
-      // refreshing in the background — poll a few times to swap in fresh numbers.
-      if (staleTimerRef.current) {
-        clearTimeout(staleTimerRef.current);
-        staleTimerRef.current = null;
-      }
-      const ageSec = Date.now() / 1000 - res.fetched_at;
-      if (!force && ageSec > 600 && staleRetryRef.current < 3) {
-        staleRetryRef.current += 1;
-        staleTimerRef.current = setTimeout(() => load(false), 90_000);
-      } else if (ageSec <= 600) {
-        staleRetryRef.current = 0;
-      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'שגיאה');
     } finally {
       setLoading(false);
+    }
+  }
+
+  function schedulePoll() {
+    if (pollRef.current) clearTimeout(pollRef.current);
+    pollRef.current = setTimeout(pollOnce, POLL_INTERVAL_MS);
+  }
+
+  // One poll tick: has the GitHub scan landed yet? fetched_at advances only once
+  // the workflow regenerated the seed and Render redeployed it.
+  async function pollOnce() {
+    pollCountRef.current += 1;
+    try {
+      const res = await api.scan(false);
+      if (res.fetched_at > baselineRef.current) {
+        setData(res);
+        setScanning(false);
+        setScanMsg('הסריקה הושלמה — הנתונים עודכנו.');
+        return;
+      }
+    } catch {
+      // Render may be mid-redeploy (brief 5xx/timeout) — ignore, keep polling.
+    }
+    if (pollCountRef.current >= MAX_POLLS) {
       setScanning(false);
+      setScanMsg('הסריקה עדיין רצה. רענן את העמוד בעוד מספר דקות כדי לראות את התוצאה.');
+      return;
+    }
+    schedulePoll();
+  }
+
+  // Kick off a real scan on GitHub's runners, then poll for the result.
+  async function triggerScan() {
+    if (scanning) return;
+    setError(null);
+    setScanMsg('מפעיל סריקה…');
+    setScanning(true);
+    try {
+      const res = await api.triggerScan();
+      baselineRef.current = res.baseline_fetched_at ?? data?.fetched_at ?? 0;
+      pollCountRef.current = 0;
+      setScanMsg(
+        res.status === 'already_running'
+          ? 'סריקה כבר רצה ברקע — ממתינים לתוצאה…'
+          : 'הסריקה רצה על שרתי GitHub — עשוי לקחת 5–10 דקות. התוצאה תתעדכן כאן אוטומטית.'
+      );
+      schedulePoll();
+    } catch (e) {
+      setScanning(false);
+      setScanMsg(null);
+      const msg = e instanceof Error ? e.message : 'שגיאה';
+      setError(
+        /API 503/.test(msg)
+          ? 'הפעלת הסריקה אינה מוגדרת בשרת (חסר מפתח GitHub ב-Render).'
+          : `הפעלת הסריקה נכשלה: ${msg}`
+      );
     }
   }
 
   useEffect(() => {
     if (!initialLoadStartedRef.current) {
       initialLoadStartedRef.current = true;
-      load(false);
+      load();
     }
     timerRef.current = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (staleTimerRef.current) clearTimeout(staleTimerRef.current);
+      if (pollRef.current) clearTimeout(pollRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,8 +151,14 @@ export function DailyScanner() {
       <ScannerHeader
         data={data}
         scanning={scanning}
-        onRescan={() => load(true)}
+        onScan={triggerScan}
       />
+
+      {scanMsg && (
+        <div className="mt-3 rounded-md border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-accent">
+          {scanMsg}
+        </div>
+      )}
 
       {data && (
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 rounded-md border border-border/60 bg-panel2/40 px-3 py-2 text-[11px] text-muted">
@@ -184,11 +240,11 @@ export function DailyScanner() {
 function ScannerHeader({
   data,
   scanning,
-  onRescan,
+  onScan,
 }: {
   data: ScanResult | null;
   scanning: boolean;
-  onRescan: () => void;
+  onScan: () => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -196,8 +252,9 @@ function ScannerHeader({
       <Stat label="נסרקו" value={data ? data.evaluated_count.toString() : '—'} accent="#6ea8ff" />
       <Stat label="סף ציון" value={data ? `≥ ${data.threshold}` : '—'} accent="#ffb454" />
       <button
-        onClick={onRescan}
+        onClick={onScan}
         disabled={scanning}
+        title="מריץ סריקה אמיתית על שרתי GitHub (כ-5–10 דקות)"
         className={
           'rounded-lg border p-3 text-center text-sm font-semibold transition ' +
           (scanning

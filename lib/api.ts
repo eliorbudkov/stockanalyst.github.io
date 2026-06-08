@@ -46,6 +46,46 @@ async function get<T>(path: string, opts: GetOptions = {}): Promise<T> {
   throw new Error('השרת מתעורר (יקיצה ראשונה עד דקה) או שיש בעיית רשת — נסה שוב בעוד רגע');
 }
 
+async function post<T>(path: string, body?: unknown, opts: GetOptions = {}): Promise<T> {
+  // No auto-retry by default: a workflow dispatch is NOT idempotent — a retried
+  // POST whose first response was merely lost would start a second scan run.
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, retries = 0 } = opts;
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${API_URL}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+        cache: 'no-store',
+        signal: ctrl.signal,
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`API ${res.status}: ${text || res.statusText}`);
+      }
+      return (await res.json()) as T;
+    } catch (e) {
+      lastErr = e;
+      if (e instanceof Error && /^API \d/.test(e.message)) throw e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  void lastErr;
+  throw new Error('השרת מתעורר (יקיצה ראשונה עד דקה) או שיש בעיית רשת — נסה שוב בעוד רגע');
+}
+
+// Result of POST /api/scan/trigger — see DailyScanner for the polling flow.
+export type ScanTriggerResult = {
+  status: 'triggered' | 'already_running';
+  baseline_fetched_at?: number | null;
+  retry_after_seconds?: number;
+  eta_seconds?: number;
+};
+
 export const api = {
   quote: (symbol: string) => get<Quote>(`/api/quote?symbol=${encodeURIComponent(symbol)}`),
   analyze: (symbol: string, period = '2y') =>
@@ -60,6 +100,11 @@ export const api = {
       // 3 min. Cached/seed reads return immediately, so 60s covers a cold boot.
       timeoutMs: force ? 180_000 : 60_000,
     }),
+  // Ask GitHub Actions to run a fresh scan (the 512MB dyno can't — it OOMs).
+  // Returns immediately after dispatch; the caller polls api.scan() for the new
+  // data once the workflow finishes and Render redeploys the seed (~5-10 min).
+  triggerScan: () =>
+    post<ScanTriggerResult>('/api/scan/trigger', undefined, { timeoutMs: 60_000 }),
   globalLiquidity: (force = false) =>
     get<GlobalLiquidity>(`/api/global-liquidity${force ? '?force=true' : ''}`),
   trumpHoldings: () => get<TrumpHoldings>(`/api/holdings/trump`),
