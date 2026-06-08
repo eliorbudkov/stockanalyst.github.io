@@ -1,0 +1,50 @@
+name: Refresh scan seed
+
+# Regenerates the committed cold-start seed (backend/data/scan.json) once per
+# trading day so a fresh Render dyno serves recent data on first paint. The push
+# triggers Render's auto-deploy, baking the new seed into the deploy image.
+on:
+  schedule:
+    # 22:00 UTC, Mon-Fri — after the US market close (16:00 ET, year-round).
+    - cron: "0 22 * * 1-5"
+  workflow_dispatch: {} # also runnable on demand from the Actions tab
+
+# Allow the default GITHUB_TOKEN to push the regenerated seed back to main.
+permissions:
+  contents: write
+
+# Never let two refreshes overlap.
+concurrency:
+  group: refresh-seed
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Regenerate scan seed
+        run: python backend/refresh_seed.py
+
+      - name: Commit & push if the seed changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/data/scan.json backend/data/universe.json
+          if git diff --staged --quiet; then
+            echo "Seed unchanged — nothing to commit."
+          else
+            git commit -m "chore(seed): scheduled scan-seed refresh"
+            git push
+          fi
