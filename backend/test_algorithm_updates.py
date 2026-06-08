@@ -1,6 +1,8 @@
 import unittest
 from datetime import date
+from unittest.mock import patch
 
+import scanner
 from entries import compute_long_term_entry
 from matrices import compute_long_term_score, compute_short_term_score
 from scanner import (
@@ -9,6 +11,7 @@ from scanner import (
     MIN_FINAL_SCORE,
     SWING_OVERALL_THRESHOLD,
     SWING_THRESHOLD,
+    ScanSeedUnavailable,
     _is_etf_qualified,
     _is_long_term_qualified,
     _is_swing_qualified,
@@ -79,6 +82,40 @@ class GeneralScoreProfileTests(unittest.TestCase):
             {"score": 6.5},
         )
         self.assertAlmostEqual(score, (8.0 + 7.5 + 6.5) / 3)
+
+
+class ScanHostingSafetyTests(unittest.TestCase):
+    def test_disabled_live_scan_never_computes_without_seed(self):
+        empty_cache = {
+            "data": None,
+            "ts": 0.0,
+            "running": False,
+            "from_seed": False,
+        }
+        with (
+            patch.object(scanner, "LIVE_SCAN_ENABLED", False),
+            patch.object(scanner, "_cache", empty_cache),
+            patch.object(scanner, "run_scan") as run_scan,
+        ):
+            with self.assertRaises(ScanSeedUnavailable):
+                scanner.get_scan(force=True)
+            run_scan.assert_not_called()
+
+    def test_disabled_live_scan_serves_existing_seed(self):
+        seed = {"fetched_at": 123.0, "top": []}
+        cached = {
+            "data": seed,
+            "ts": 123.0,
+            "running": False,
+            "from_seed": True,
+        }
+        with (
+            patch.object(scanner, "LIVE_SCAN_ENABLED", False),
+            patch.object(scanner, "_cache", cached),
+            patch.object(scanner, "run_scan") as run_scan,
+        ):
+            self.assertIs(scanner.get_scan(force=True), seed)
+            run_scan.assert_not_called()
 
 
 class SwingProfileTests(unittest.TestCase):

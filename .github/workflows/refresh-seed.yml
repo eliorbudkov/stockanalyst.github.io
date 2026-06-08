@@ -46,6 +46,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "Seed unchanged — nothing to commit."
           else
-            git commit -m "chore(seed): scheduled scan-seed refresh"
+            git commit -m "chore(seed): on-demand scan-seed refresh"
             git push
           fi

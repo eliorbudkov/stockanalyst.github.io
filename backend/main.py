@@ -45,7 +45,7 @@ from matrices import (
 )
 from patterns import detect_patterns
 from risk import build_long_term_plan, build_risk_plan
-from scanner import get_scan
+from scanner import ScanSeedUnavailable, get_scan
 from scoring import compute_score
 from translate import translate_to_hebrew
 from trump_holdings import get_trump_holdings, is_trump_held
@@ -126,6 +126,8 @@ def heatmap(force: bool = Query(False)) -> dict[str, Any]:
 def scan(force: bool = Query(False)) -> dict[str, Any]:
     try:
         return get_scan(force=force)
+    except ScanSeedUnavailable as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Scan failed: {e}")
 

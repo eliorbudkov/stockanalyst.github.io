@@ -110,6 +110,10 @@ _refresh_lock = Lock()
 _refreshing = False
 
 
+class ScanSeedUnavailable(RuntimeError):
+    """Raised when live scanning is disabled and no committed seed is available."""
+
+
 def _load_disk_cache() -> None:
     """Populate the in-memory cache from disk once, at import time."""
     if _cache["data"] is not None:
@@ -858,10 +862,15 @@ def get_scan(force: bool = False) -> dict[str, Any]:
     have_cache = _cache["data"] is not None
 
     # On a constrained host the heavy scan never runs in-process: serve the
-    # committed seed (CI refreshes it daily) and skip ALL computation — including
+    # committed seed (CI refreshes it on demand) and skip ALL computation — including
     # the manual force rescan, which would otherwise OOM the 512MB dyno.
-    if not LIVE_SCAN_ENABLED and have_cache:
-        return _cache["data"]
+    if not LIVE_SCAN_ENABLED:
+        if have_cache:
+            return _cache["data"]
+        raise ScanSeedUnavailable(
+            "Scan seed unavailable and live scanning is disabled. "
+            "Run the refresh-seed GitHub workflow to regenerate backend/data/scan.json."
+        )
 
     # The committed seed is never "fresh" — serving it must always kick a live
     # refresh, otherwise a recently-generated seed freezes the scan for a TTL.
