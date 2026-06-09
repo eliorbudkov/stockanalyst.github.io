@@ -1,5 +1,5 @@
 {
-  "ts": 1780986421.01504,
+  "ts": 1780986935.3170304,
   "universe": [
     {
       "symbol": "A",
@@ -144,13 +144,6 @@
       "name": "Archer Daniels Midland",
       "sector": "Consumer Staples",
       "source": "sp500"
-    },
-    {
-      "symbol": "ADMA",
-      "name": "ADMA BIOLOGICS INC",
-      "sector": "Healthcare",
-      "source": "russell2000",
-      "daily_volume": 2717400.0
     },
     {
       "symbol": "ADP",
@@ -2850,6 +2843,13 @@
       "sector": "Consumer Discretionary",
       "source": "russell2000",
       "daily_volume": 9363500.0
+    },
+    {
+      "symbol": "GTLS",
+      "name": "CHART INDUSTRIES INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1209000.0
     },
     {
       "symbol": "GTX",
