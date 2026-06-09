@@ -526,10 +526,15 @@ class SwingProfileTests(unittest.TestCase):
 
     def test_multi_trigger_setup_accepts_bull_flag_near_breakout(self):
         index = pd.bdate_range("2025-08-01", periods=220)
-        close = pd.Series(
-            [80.0 + offset * 0.14 for offset in range(220)],
-            index=index,
-        )
+        # Strong uptrend with small periodic pullbacks so RSI(14) is a real
+        # momentum reading (> 60) instead of the divide-by-zero 50 a perfectly
+        # monotonic series produces.
+        levels = []
+        price = 80.0
+        for offset in range(220):
+            price += -0.30 * 0.6 if offset % 5 == 4 else 0.30
+            levels.append(price)
+        close = pd.Series(levels, index=index)
         frame = pd.DataFrame({
             "open": close * 0.998,
             "high": close * 1.006,
@@ -563,10 +568,14 @@ class SwingProfileTests(unittest.TestCase):
 
     def test_etf_uses_lower_rvol_threshold_than_stock(self):
         index = pd.bdate_range("2025-08-01", periods=220)
-        close = pd.Series(
-            [100.0 + offset * 0.10 for offset in range(220)],
-            index=index,
-        )
+        # Rising trend with minor pullbacks → RSI(14) > 60 (a perfectly
+        # monotonic series collapses to RSI 50 via divide-by-zero).
+        levels = []
+        price = 100.0
+        for offset in range(220):
+            price += -0.25 * 0.6 if offset % 5 == 4 else 0.25
+            levels.append(price)
+        close = pd.Series(levels, index=index)
         frame = pd.DataFrame({
             "open": close,
             "high": close * 1.004,
@@ -600,6 +609,69 @@ class SwingProfileTests(unittest.TestCase):
 
         self.assertFalse(stock_setup["qualified"])
         self.assertTrue(etf_setup["qualified"])
+
+    def test_short_term_setup_rejects_weak_rsi_momentum(self):
+        """RSI(14) > 60 is a hard auto-filter for both stocks and ETFs: an
+        otherwise-perfect setup whose RSI sits at/below the floor is rejected,
+        while the same setup with strong RSI qualifies."""
+        index = pd.bdate_range("2025-08-01", periods=220)
+
+        def make_frame(levels):
+            close = pd.Series(levels, index=index)
+            return pd.DataFrame({
+                "open": close * 0.998,
+                "high": close * 1.006,
+                "low": close * 0.994,
+                "close": close,
+                "volume": 2_000_000.0,
+            })
+
+        # Weak momentum: a perfectly linear rise lands RSI exactly at 50.
+        weak_frame = make_frame([80.0 + offset * 0.20 for offset in range(220)])
+        # Strong momentum: rising with minor pullbacks pushes RSI well above 60.
+        strong_levels = []
+        price = 80.0
+        for offset in range(220):
+            price += -0.30 * 0.6 if offset % 5 == 4 else 0.30
+            strong_levels.append(price)
+        strong_frame = make_frame(strong_levels)
+
+        def pattern_for(close):
+            return {
+                "detected": True,
+                "direction": "bullish",
+                "name": "Ascending Triangle",
+                "confidence": 72,
+                "level": float(close.iloc[-1] * 1.02),
+                "target": float(close.iloc[-1] * 1.15),
+                "stop": float(close.iloc[-1] * 0.96),
+            }
+
+        def patterns_for(close):
+            return {
+                "cup_and_handle": {"detected": False},
+                "flag": {"detected": False},
+                "double_bottom": {"detected": False},
+                "triangle": pattern_for(close),
+            }
+
+        with patch.object(
+            scanner, "detect_patterns",
+            return_value=patterns_for(weak_frame["close"]),
+        ):
+            weak_setup = _compute_prebreakout_swing_setup(weak_frame, rvol=1.5)
+        with patch.object(
+            scanner, "detect_patterns",
+            return_value=patterns_for(strong_frame["close"]),
+        ):
+            strong_setup = _compute_prebreakout_swing_setup(
+                strong_frame, rvol=1.5,
+            )
+
+        self.assertFalse(weak_setup["checks"]["momentum_rsi"])
+        self.assertFalse(weak_setup["qualified"])
+        self.assertTrue(strong_setup["checks"]["momentum_rsi"])
+        self.assertTrue(strong_setup["qualified"])
 
     def test_prebreakout_setup_requires_sixty_percent(self):
         cup = {

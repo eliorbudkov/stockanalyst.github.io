@@ -65,6 +65,7 @@ SWING_MIN_RVOL = 1.20
 ETF_SWING_MIN_RVOL = 1.10
 SWING_MIN_RISK_REWARD = 1.50
 SWING_MIN_SUCCESS_RATE = 60.0
+SWING_MIN_RSI = 60.0  # RSI(14) momentum floor — auto-filters weak-momentum assets
 SWING_MAX_BREAKOUT_DISTANCE_PCT = 5.0
 SWING_MAX_ATR_PCT = 8.0
 ETF_SWING_MAX_ATR_PCT = 5.0
@@ -98,7 +99,13 @@ ETFS: list[tuple[str, str, str]] = [
 ]
 
 
-_cache: dict[str, Any] = {"data": None, "ts": 0.0, "running": False, "from_seed": False}
+_cache: dict[str, Any] = {
+    "data": None,
+    "ts": 0.0,
+    "running": False,
+    "from_seed": False,
+    "seed_mtime_ns": 0,
+}
 _scan_lock = Lock()
 
 # ── Disk-backed scan cache (cold-start survival) ─────────────────────────────
@@ -131,16 +138,21 @@ class ScanSeedUnavailable(RuntimeError):
 
 
 def _load_disk_cache() -> None:
-    """Populate the in-memory cache from disk once, at import time."""
-    if _cache["data"] is not None:
-        return
+    """Load a new or changed committed seed into the in-memory cache."""
     try:
         if SCAN_CACHE_FILE.exists():
+            seed_mtime_ns = SCAN_CACHE_FILE.stat().st_mtime_ns
+            if (
+                _cache["data"] is not None
+                and seed_mtime_ns == _cache.get("seed_mtime_ns", 0)
+            ):
+                return
             cached = json.loads(SCAN_CACHE_FILE.read_text(encoding="utf-8"))
             data = cached.get("data")
             if data:
                 _cache["data"] = data
                 _cache["ts"] = float(cached.get("ts", 0.0))
+                _cache["seed_mtime_ns"] = seed_mtime_ns
                 # Mark this as the cold-start seed. On Render the runtime disk is
                 # ephemeral, so every boot reloads the *committed* seed — whose
                 # timestamp may be only minutes old and would otherwise look
@@ -298,6 +310,7 @@ def _sanitize_scan_payload(data: dict[str, Any]) -> dict[str, Any]:
         "etf_swing_min_rvol": ETF_SWING_MIN_RVOL,
         "swing_min_risk_reward": SWING_MIN_RISK_REWARD,
         "swing_min_success_rate": SWING_MIN_SUCCESS_RATE,
+        "swing_min_rsi": SWING_MIN_RSI,
         "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
         "minimum_final_score": MIN_FINAL_SCORE,
         "etf_threshold": ETF_THRESHOLD,
@@ -539,6 +552,9 @@ def _compute_prebreakout_swing_setup(
         and current_price >= ma50_value
     )
     healthy_rsi = bool(rsi_value is not None and 45.0 <= rsi_value <= 72.0)
+    # Hard momentum filter: RSI(14) must clear the floor or the asset is
+    # auto-rejected (weak momentum) for both stocks and ETFs.
+    momentum_rsi_ok = bool(rsi_value is not None and rsi_value > SWING_MIN_RSI)
     vwap_reclaim = bool(
         vwap_value is not None
         and prior_vwap is not None
@@ -656,7 +672,7 @@ def _compute_prebreakout_swing_setup(
         or near_resistance
         or (selected_pattern is not None and not pattern_broke_out)
     )
-    quality_ok = trend_ok and liquidity_ok and volatility_ok
+    quality_ok = trend_ok and liquidity_ok and volatility_ok and momentum_rsi_ok
     rr_ok = bool(
         risk_reward is not None and risk_reward >= SWING_MIN_RISK_REWARD
     )
@@ -702,6 +718,7 @@ def _compute_prebreakout_swing_setup(
         "trend": trend_ok,
         "liquidity": liquidity_ok,
         "volatility": volatility_ok,
+        "momentum_rsi": momentum_rsi_ok,
         "elevated_rvol": volume_ok,
         "bullish_trigger": bool(ready_trigger or near_trigger),
         "risk_reward": rr_ok,
@@ -711,6 +728,7 @@ def _compute_prebreakout_swing_setup(
         f"Triggers: {', '.join(trigger_names) if trigger_names else 'None'}",
         f"RVOL {float(effective_rvol or 0.0):.2f}x; median dollar volume ${median_dollar_volume / 1_000_000:.1f}M",
         f"R:R 1:{float(risk_reward or 0.0):.2f}; breakout distance {float(distance_to_breakout_pct or 0.0):.1f}%",
+        f"RSI(14) {float(rsi_value or 0.0):.1f} (floor {SWING_MIN_RSI:.0f})",
         f"Setup score {setup_score:.1f}/10",
     ]
     return {
@@ -1632,6 +1650,7 @@ def run_scan(
         "etf_swing_min_rvol": ETF_SWING_MIN_RVOL,
         "swing_min_risk_reward": SWING_MIN_RISK_REWARD,
         "swing_min_success_rate": SWING_MIN_SUCCESS_RATE,
+        "swing_min_rsi": SWING_MIN_RSI,
         "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
         "minimum_final_score": MIN_FINAL_SCORE,
         "etf_threshold": ETF_THRESHOLD,
@@ -1737,6 +1756,12 @@ def get_scan(force: bool = False) -> dict[str, Any]:
     # committed seed (CI refreshes it on demand) and skip ALL computation — including
     # the manual force rescan, which would otherwise OOM the 512MB dyno.
     if not LIVE_SCAN_ENABLED:
+        if (
+            have_cache
+            and _cache.get("from_seed")
+            and _cache.get("seed_mtime_ns")
+        ):
+            _load_disk_cache()
         if have_cache:
             return _sanitize_scan_payload(_cache["data"])
         raise ScanSeedUnavailable(

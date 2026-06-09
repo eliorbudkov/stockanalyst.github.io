@@ -10,7 +10,7 @@ export function IndicatorPanel({ quote, indicators }: { quote: Quote; indicators
     rsi === null
       ? '—'
       : rsi >= 70
-      ? 'קנייתיתר (Overbought)'
+      ? 'קניית יתר (Overbought)'
       : rsi <= 30
       ? 'מכירת יתר (Oversold)'
       : 'אזור ניטרלי';
@@ -41,7 +41,7 @@ function Row({ label, value, hint, status }: { label: string; value: string; hin
         <StatusDot status={status} />
         <span>{label}</span>
       </dt>
-      <dd className="ltr text-lg font-semibold">{value}</dd>
+      <dd className="text-base font-semibold">{value}</dd>
       {hint && <p className="mt-0.5 text-[11px] text-muted">{hint}</p>}
     </div>
   );
