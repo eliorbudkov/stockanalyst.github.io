@@ -1,5 +1,5 @@
 {
-  "ts": 1780983404.2673724,
+  "ts": 1780983406.3022814,
   "universe": [
     {
       "symbol": "A",
@@ -13,6 +13,13 @@
       "sector": "Technology",
       "source": "russell2000",
       "daily_volume": 14838500.0
+    },
+    {
+      "symbol": "AAP",
+      "name": "ADVANCE AUTO PARTS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2856200.0
     },
     {
       "symbol": "AAPL",
@@ -34,10 +41,31 @@
       "source": "sp500"
     },
     {
+      "symbol": "ABM",
+      "name": "ABM INDUSTRIES INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1306700.0
+    },
+    {
       "symbol": "ABNB",
       "name": "Airbnb",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "ABR",
+      "name": "ARBOR REALTY TRUST REIT INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3038700.0
+    },
+    {
+      "symbol": "ABSI",
+      "name": "ABSCI CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2744200.0
     },
     {
       "symbol": "ABT",
@@ -59,10 +87,31 @@
       "daily_volume": 39202400.0
     },
     {
+      "symbol": "ACMR",
+      "name": "ACM RESEARCH CLASS A INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1391700.0
+    },
+    {
       "symbol": "ACN",
       "name": "Accenture",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "ACRS",
+      "name": "ACLARIS THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1464000.0
+    },
+    {
+      "symbol": "ACVA",
+      "name": "ACV AUCTIONS INC CLASS A",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2007700.0
     },
     {
       "symbol": "ADBE",
@@ -78,6 +127,13 @@
       "daily_volume": 12482300.0
     },
     {
+      "symbol": "ADEA",
+      "name": "ADEIA INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2693553.0
+    },
+    {
       "symbol": "ADI",
       "name": "Analog Devices",
       "sector": "Technology",
@@ -90,10 +146,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "ADMA",
+      "name": "ADMA BIOLOGICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2717400.0
+    },
+    {
       "symbol": "ADP",
       "name": "Automatic Data Processing",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "ADPT",
+      "name": "ADAPTIVE BIOTECHNOLOGIES CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1749300.0
     },
     {
       "symbol": "ADSK",
@@ -102,10 +172,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "ADTN",
+      "name": "ADTRAN HOLDINGS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2963300.0
+    },
+    {
       "symbol": "AEE",
       "name": "Ameren",
       "sector": "Utilities",
       "source": "sp500"
+    },
+    {
+      "symbol": "AEHR",
+      "name": "AEHR TEST SYSTEMS",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1807400.0
     },
     {
       "symbol": "AEO",
@@ -134,10 +218,24 @@
       "daily_volume": 4243300.0
     },
     {
+      "symbol": "AEVA",
+      "name": "AEVA TECHNOLOGIES INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2103100.0
+    },
+    {
       "symbol": "AFL",
       "name": "Aflac",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "AHR",
+      "name": "AMERICAN HEALTHCARE REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 3978500.0
     },
     {
       "symbol": "AI",
@@ -151,6 +249,13 @@
       "name": "American International Group",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "AIRJ",
+      "name": "AIRJOULE TECHNOLOGIES CORP CLASS A",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1725600.0
     },
     {
       "symbol": "AIZ",
@@ -171,10 +276,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "AKBA",
+      "name": "AKEBIA THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2488100.0
+    },
+    {
       "symbol": "ALB",
       "name": "Albemarle Corporation",
       "sector": "Materials",
       "source": "sp500"
+    },
+    {
+      "symbol": "ALDX",
+      "name": "ALDEYRA THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1783300.0
     },
     {
       "symbol": "ALGN",
@@ -197,6 +316,20 @@
       "daily_volume": 26881400.0
     },
     {
+      "symbol": "ALKS",
+      "name": "ALKERMES",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1292000.0
+    },
+    {
+      "symbol": "ALKT",
+      "name": "ALKAMI TECHNOLOGY INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1699600.0
+    },
+    {
       "symbol": "ALL",
       "name": "Allstate",
       "sector": "Financials",
@@ -216,16 +349,44 @@
       "daily_volume": 9263500.0
     },
     {
+      "symbol": "ALMS",
+      "name": "ALUMIS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1711900.0
+    },
+    {
       "symbol": "ALNY",
       "name": "Alnylam Pharmaceuticals",
       "sector": "Technology",
       "source": "nasdaq100"
     },
     {
+      "symbol": "ALT",
+      "name": "ALTIMMUNE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2170200.0
+    },
+    {
       "symbol": "AMAT",
       "name": "Applied Materials",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "AMBA",
+      "name": "AMBARELLA INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1786100.0
+    },
+    {
+      "symbol": "AMBP",
+      "name": "ARDAGH METAL PACKAGING SA",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 1216100.0
     },
     {
       "symbol": "AMC",
@@ -259,10 +420,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "AMLX",
+      "name": "AMYLYX PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2093600.0
+    },
+    {
       "symbol": "AMP",
       "name": "Ameriprise Financial",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "AMPL",
+      "name": "AMPLITUDE INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3888000.0
     },
     {
       "symbol": "AMPX",
@@ -270,6 +445,20 @@
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 4957400.0
+    },
+    {
+      "symbol": "AMRX",
+      "name": "AMNEAL PHARMACEUTICALS INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1445900.0
+    },
+    {
+      "symbol": "AMSC",
+      "name": "AMERICAN SUPERCONDUCTOR CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1581700.0
     },
     {
       "symbol": "AMT",
@@ -290,6 +479,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "ANF",
+      "name": "ABERCROMBIE AND FITCH CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1382700.0
+    },
+    {
+      "symbol": "ANNX",
+      "name": "ANNEXON INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3313700.0
+    },
+    {
       "symbol": "AON",
       "name": "Aon plc",
       "sector": "Financials",
@@ -308,10 +511,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "APAM",
+      "name": "ARTISAN PARTNERS ASSET MANAGEMENT",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1503600.0
+    },
+    {
       "symbol": "APD",
       "name": "Air Products",
       "sector": "Materials",
       "source": "sp500"
+    },
+    {
+      "symbol": "APGE",
+      "name": "APOGEE THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1317000.0
     },
     {
       "symbol": "APH",
@@ -325,6 +542,13 @@
       "sector": "Technology",
       "source": "russell2000",
       "daily_volume": 15318300.0
+    },
+    {
+      "symbol": "APLE",
+      "name": "APPLE HOSPITALITY REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2464900.0
     },
     {
       "symbol": "APO",
@@ -352,6 +576,27 @@
       "source": "sp500"
     },
     {
+      "symbol": "AQST",
+      "name": "AQUESTIVE THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1533200.0
+    },
+    {
+      "symbol": "ARAY",
+      "name": "ACCURAY INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1297400.0
+    },
+    {
+      "symbol": "ARDX",
+      "name": "ARDELYX INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1817400.0
+    },
+    {
       "symbol": "ARE",
       "name": "Alexandria Real Estate Equities",
       "sector": "Real Estate",
@@ -370,6 +615,20 @@
       "source": "nasdaq100"
     },
     {
+      "symbol": "AROC",
+      "name": "ARCHROCK INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1534800.0
+    },
+    {
+      "symbol": "ARR",
+      "name": "ARMOUR RESIDENTIAL REIT INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3860400.0
+    },
+    {
       "symbol": "ARRY",
       "name": "ARRAY TECHNOLOGIES INC",
       "sector": "Industrials",
@@ -377,10 +636,31 @@
       "daily_volume": 5384500.0
     },
     {
+      "symbol": "ASAN",
+      "name": "ASANA INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3928200.0
+    },
+    {
+      "symbol": "ASB",
+      "name": "ASSOCIATED BANCORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1593200.0
+    },
+    {
       "symbol": "ASML",
       "name": "ASML Holding",
       "sector": "Technology",
       "source": "nasdaq100"
+    },
+    {
+      "symbol": "ASO",
+      "name": "ACADEMY SPORTS AND OUTDOORS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2888100.0
     },
     {
       "symbol": "ASPI",
@@ -390,10 +670,45 @@
       "daily_volume": 4482300.0
     },
     {
+      "symbol": "ASST",
+      "name": "STRIVE INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 4020100.0
+    },
+    {
+      "symbol": "ATEC",
+      "name": "ALPHATEC HOLDNGS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1736300.0
+    },
+    {
       "symbol": "ATO",
       "name": "Atmos Energy",
       "sector": "Utilities",
       "source": "sp500"
+    },
+    {
+      "symbol": "ATOM",
+      "name": "ATOMERA INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1283400.0
+    },
+    {
+      "symbol": "ATYR",
+      "name": "ATYR PHARMA INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1774400.0
+    },
+    {
+      "symbol": "AVAH",
+      "name": "AVEANNA HEALTHCARE HOLDINGS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1700500.0
     },
     {
       "symbol": "AVB",
@@ -406,6 +721,20 @@
       "name": "Broadcom",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "AVO",
+      "name": "MISSION PRODUCE INC",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 2022900.0
+    },
+    {
+      "symbol": "AVPT",
+      "name": "AVEPOINT INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1498200.0
     },
     {
       "symbol": "AVY",
@@ -456,6 +785,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "BANC",
+      "name": "BANC OF CALIFORNIA INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1564500.0
+    },
+    {
       "symbol": "BAX",
       "name": "Baxter International",
       "sector": "Healthcare",
@@ -469,10 +805,45 @@
       "daily_volume": 34228800.0
     },
     {
+      "symbol": "BBBY",
+      "name": "BED BATH AND BEYOND INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1631500.0
+    },
+    {
+      "symbol": "BBIO",
+      "name": "BRIDGEBIO PHARMA INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1751900.0
+    },
+    {
+      "symbol": "BBNX",
+      "name": "BETA BIONICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1263500.0
+    },
+    {
       "symbol": "BBY",
       "name": "Best Buy",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "BCRX",
+      "name": "BIOCRYST PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 4086000.0
+    },
+    {
+      "symbol": "BDN",
+      "name": "BRANDYWINE REALTY TRUST REIT",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1432200.0
     },
     {
       "symbol": "BDX",
@@ -488,10 +859,24 @@
       "daily_volume": 8594600.0
     },
     {
+      "symbol": "BEAM",
+      "name": "BEAM THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1310500.0
+    },
+    {
       "symbol": "BEN",
       "name": "Franklin Resources",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "BETA",
+      "name": "BETA TECHNOLOGIES INC CLASS A",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1373700.0
     },
     {
       "symbol": "BF-B",
@@ -513,6 +898,27 @@
       "source": "sp500"
     },
     {
+      "symbol": "BGC",
+      "name": "BGC GROUP INC CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2426500.0
+    },
+    {
+      "symbol": "BGS",
+      "name": "B AND G FOODS INC",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 2705300.0
+    },
+    {
+      "symbol": "BHVN",
+      "name": "BIOHAVEN LTD",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2281300.0
+    },
+    {
       "symbol": "BIIB",
       "name": "Biogen",
       "sector": "Healthcare",
@@ -524,6 +930,20 @@
       "sector": "Healthcare",
       "source": "russell2000",
       "daily_volume": 5092400.0
+    },
+    {
+      "symbol": "BKH",
+      "name": "BLACK HILLS CORP",
+      "sector": "Utilities",
+      "source": "russell2000",
+      "daily_volume": 1237300.0
+    },
+    {
+      "symbol": "BKKT",
+      "name": "BAKKT INC CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1497600.0
     },
     {
       "symbol": "BKNG",
@@ -538,6 +958,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "BKSY",
+      "name": "BLACKSKY TECHNOLOGY INC CLASS A",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2335100.0
+    },
+    {
+      "symbol": "BL",
+      "name": "BLACKLINE INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1472400.0
+    },
+    {
       "symbol": "BLDR",
       "name": "Builders FirstSource",
       "sector": "Industrials",
@@ -550,10 +984,38 @@
       "source": "sp500"
     },
     {
+      "symbol": "BLMN",
+      "name": "BLOOMIN BRANDS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1630800.0
+    },
+    {
+      "symbol": "BLND",
+      "name": "BLEND LABS INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2885100.0
+    },
+    {
+      "symbol": "BMBL",
+      "name": "BUMBLE INC CLASS A",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1906400.0
+    },
+    {
       "symbol": "BMY",
       "name": "Bristol Myers Squibb",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "BNL",
+      "name": "BROADSTONE NET LEASE INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2233900.0
     },
     {
       "symbol": "BNY",
@@ -569,10 +1031,24 @@
       "daily_volume": 4359800.0
     },
     {
+      "symbol": "BOX",
+      "name": "BOX INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1342500.0
+    },
+    {
       "symbol": "BR",
       "name": "Broadridge Financial Solutions",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "BRCC",
+      "name": "BRC INC CLASS A",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1289600.0
     },
     {
       "symbol": "BRK-B",
@@ -585,6 +1061,20 @@
       "name": "Brown & Brown",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "BRSL",
+      "name": "BRIGHTSTAR LOTTERY PLC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1377000.0
+    },
+    {
+      "symbol": "BRZE",
+      "name": "BRAZE INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3570000.0
     },
     {
       "symbol": "BSX",
@@ -607,11 +1097,39 @@
       "daily_volume": 15089600.0
     },
     {
+      "symbol": "BTSG",
+      "name": "BRIGHTSPRING HEALTH SERVICES INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 4185200.0
+    },
+    {
+      "symbol": "BTU",
+      "name": "PEABODY ENERGY CORP",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2613400.0
+    },
+    {
       "symbol": "BULL",
       "name": "WEBULL CORP CLASS A",
       "sector": "Financials",
       "source": "russell2000",
       "daily_volume": 11838200.0
+    },
+    {
+      "symbol": "BUR",
+      "name": "BURFORD CAPITAL LTD",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1669700.0
+    },
+    {
+      "symbol": "BWIN",
+      "name": "BALDWIN INSURANCE GROUP INC CLASS",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1548800.0
     },
     {
       "symbol": "BX",
@@ -633,10 +1151,24 @@
       "daily_volume": 62067300.0
     },
     {
+      "symbol": "BZAI",
+      "name": "BLAIZE HOLDINGS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3134700.0
+    },
+    {
       "symbol": "C",
       "name": "Citigroup",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "CADL",
+      "name": "CANDEL THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1508700.0
     },
     {
       "symbol": "CAG",
@@ -649,6 +1181,27 @@
       "name": "Cardinal Health",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "CAKE",
+      "name": "CHEESECAKE FACTORY INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1435000.0
+    },
+    {
+      "symbol": "CALX",
+      "name": "CALIX NETWORKS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1235500.0
+    },
+    {
+      "symbol": "CALY",
+      "name": "CALLAWAY GOLF COMPANY",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 3711600.0
     },
     {
       "symbol": "CARR",
@@ -667,6 +1220,13 @@
       "name": "Caterpillar Inc.",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "CATX",
+      "name": "PERSPECTIVE THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1262400.0
     },
     {
       "symbol": "CB",
@@ -730,6 +1290,27 @@
       "source": "sp500"
     },
     {
+      "symbol": "CELC",
+      "name": "CELCUITY INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1437600.0
+    },
+    {
+      "symbol": "CENX",
+      "name": "CENTURY ALUMINUM",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 2503700.0
+    },
+    {
+      "symbol": "CERS",
+      "name": "CERUS CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1668700.0
+    },
+    {
       "symbol": "CF",
       "name": "CF Industries",
       "sector": "Materials",
@@ -740,6 +1321,13 @@
       "name": "Citizens Financial Group",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "CGEM",
+      "name": "CULLINAN THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1740300.0
     },
     {
       "symbol": "CHD",
@@ -791,6 +1379,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "CLOV",
+      "name": "CLOVER HEALTH INVESTMENTS CORP CLA",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 4137000.0
+    },
+    {
       "symbol": "CLSK",
       "name": "CLEANSPARK INC",
       "sector": "Technology",
@@ -802,6 +1397,13 @@
       "name": "Clorox",
       "sector": "Consumer Staples",
       "source": "sp500"
+    },
+    {
+      "symbol": "CMC",
+      "name": "COMMERCIAL METALS",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 1472200.0
     },
     {
       "symbol": "CMCSA",
@@ -828,6 +1430,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "CMPX",
+      "name": "COMPASS THERAPEUTICS",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2264200.0
+    },
+    {
       "symbol": "CMS",
       "name": "CMS Energy",
       "sector": "Utilities",
@@ -840,16 +1449,44 @@
       "source": "sp500"
     },
     {
+      "symbol": "CNDT",
+      "name": "CONDUENT INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1297600.0
+    },
+    {
+      "symbol": "CNK",
+      "name": "CINEMARK HOLDINGS INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 2652600.0
+    },
+    {
       "symbol": "CNP",
       "name": "CenterPoint Energy",
       "sector": "Utilities",
       "source": "sp500"
     },
     {
+      "symbol": "CNX",
+      "name": "CNX RESOURCES CORP",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1293300.0
+    },
+    {
       "symbol": "COF",
       "name": "Capital One",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "COGT",
+      "name": "COGENT BIOSCIENCES INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1901400.0
     },
     {
       "symbol": "COHR",
@@ -921,10 +1558,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "CPRI",
+      "name": "CAPRI HOLDINGS LTD",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2731900.0
+    },
+    {
       "symbol": "CPRT",
       "name": "Copart",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "CPRX",
+      "name": "CATALYST PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1588600.0
     },
     {
       "symbol": "CPT",
@@ -953,6 +1604,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "CRK",
+      "name": "COMSTOCK RESOURCES INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 3896900.0
+    },
+    {
       "symbol": "CRL",
       "name": "Charles River Laboratories",
       "sector": "Healthcare",
@@ -965,11 +1623,25 @@
       "source": "sp500"
     },
     {
+      "symbol": "CRMD",
+      "name": "CORMEDIX INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1773100.0
+    },
+    {
       "symbol": "CRML",
       "name": "CRITICAL METALS CORP",
       "sector": "Materials",
       "source": "russell2000",
       "daily_volume": 4818600.0
+    },
+    {
+      "symbol": "CRSR",
+      "name": "CORSAIR GAMING INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2371500.0
     },
     {
       "symbol": "CRWD",
@@ -990,6 +1662,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "CSTM",
+      "name": "CONSTELLIUM SE CLASS A",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 1534100.0
+    },
+    {
       "symbol": "CSX",
       "name": "CSX Corporation",
       "sector": "Industrials",
@@ -1000,6 +1679,27 @@
       "name": "Cintas",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "CTKB",
+      "name": "CYTEK BIOSCIENCES INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1413300.0
+    },
+    {
+      "symbol": "CTOS",
+      "name": "CUSTOM TRUCK ONE SOURCE INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1335600.0
+    },
+    {
+      "symbol": "CTRE",
+      "name": "CARETRUST REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 3886400.0
     },
     {
       "symbol": "CTSH",
@@ -1032,6 +1732,48 @@
       "source": "sp500"
     },
     {
+      "symbol": "CWAN",
+      "name": "CLEARWATER ANALYTICS HOLDINGS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3651700.0
+    },
+    {
+      "symbol": "CWH",
+      "name": "CAMPING WORLD HOLDINGS INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1754500.0
+    },
+    {
+      "symbol": "CWK",
+      "name": "CUSHMAN AND WAKEFIELD LTD",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1634500.0
+    },
+    {
+      "symbol": "CXM",
+      "name": "SPRINKLR INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2564300.0
+    },
+    {
+      "symbol": "CXW",
+      "name": "CORECIVIC REIT INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1735700.0
+    },
+    {
+      "symbol": "CYTK",
+      "name": "CYTOKINETICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2382300.0
+    },
+    {
       "symbol": "D",
       "name": "Dominion Energy",
       "sector": "Utilities",
@@ -1048,6 +1790,27 @@
       "name": "DoorDash",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "DBI",
+      "name": "DESIGNER BRANDS INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1449400.0
+    },
+    {
+      "symbol": "DBRG",
+      "name": "DIGITALBRIDGE GROUP INC CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2557600.0
+    },
+    {
+      "symbol": "DCH",
+      "name": "DAUCH CORPORATION",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 4118900.0
     },
     {
       "symbol": "DD",
@@ -1081,10 +1844,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "DEI",
+      "name": "DOUGLAS EMMETT REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2097500.0
+    },
+    {
       "symbol": "DELL",
       "name": "Dell Technologies",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "DFTX",
+      "name": "DEFINIUM THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3644700.0
     },
     {
       "symbol": "DG",
@@ -1099,6 +1876,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "DHC",
+      "name": "DIVERSIFIED HEALTHCARE TRUST",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2608100.0
+    },
+    {
       "symbol": "DHI",
       "name": "D. R. Horton",
       "sector": "Consumer Discretionary",
@@ -1111,10 +1895,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "DHT",
+      "name": "DHT HOLDINGS INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1729300.0
+    },
+    {
       "symbol": "DIS",
       "name": "Walt Disney Company (The)",
       "sector": "Communication",
       "source": "sp500"
+    },
+    {
+      "symbol": "DK",
+      "name": "DELEK US HOLDINGS INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1334600.0
     },
     {
       "symbol": "DLR",
@@ -1129,10 +1927,45 @@
       "source": "sp500"
     },
     {
+      "symbol": "DNLI",
+      "name": "DENALI THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1893200.0
+    },
+    {
+      "symbol": "DNOW",
+      "name": "DNOW INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1982800.0
+    },
+    {
+      "symbol": "DNUT",
+      "name": "KRISPY KREME INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 3973600.0
+    },
+    {
       "symbol": "DOC",
       "name": "Healthpeak Properties",
       "sector": "Real Estate",
       "source": "sp500"
+    },
+    {
+      "symbol": "DOCN",
+      "name": "DIGITALOCEAN HOLDINGS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2603600.0
+    },
+    {
+      "symbol": "DOLE",
+      "name": "DOLE PLC",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1570500.0
     },
     {
       "symbol": "DOV",
@@ -1151,6 +1984,13 @@
       "name": "Domino's",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "DRH",
+      "name": "DIAMONDROCK HOSPITALITY",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1412700.0
     },
     {
       "symbol": "DRI",
@@ -1183,10 +2023,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "DX",
+      "name": "DYNEX CAPITAL REIT INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3328500.0
+    },
+    {
       "symbol": "DXCM",
       "name": "Dexcom",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "DYN",
+      "name": "DYNE THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2058300.0
     },
     {
       "symbol": "EA",
@@ -1214,10 +2068,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "ECVT",
+      "name": "ECOVYST INC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 2097800.0
+    },
+    {
       "symbol": "ED",
       "name": "Consolidated Edison",
       "sector": "Utilities",
       "source": "sp500"
+    },
+    {
+      "symbol": "EDIT",
+      "name": "EDITAS MEDICINE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1476100.0
     },
     {
       "symbol": "EFX",
@@ -1232,6 +2100,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "EGHT",
+      "name": "8X8 INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1327000.0
+    },
+    {
       "symbol": "EIX",
       "name": "Edison International",
       "sector": "Utilities",
@@ -1244,10 +2119,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "ELDN",
+      "name": "ELEDON PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1825200.0
+    },
+    {
       "symbol": "ELV",
       "name": "Elevance Health",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "EMBC",
+      "name": "EMBECTA CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1584400.0
     },
     {
       "symbol": "EME",
@@ -1262,6 +2151,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "ENSG",
+      "name": "ENSIGN GROUP INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2358300.0
+    },
+    {
+      "symbol": "ENVX",
+      "name": "ENOVIX CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 3639300.0
+    },
+    {
       "symbol": "EOG",
       "name": "EOG Resources",
       "sector": "Energy",
@@ -1273,6 +2176,13 @@
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 20080200.0
+    },
+    {
+      "symbol": "EPRT",
+      "name": "ESSENTIAL PROPERTIES REALTY TRUST",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 3056000.0
     },
     {
       "symbol": "EQIX",
@@ -1319,6 +2229,13 @@
       "daily_volume": 11339000.0
     },
     {
+      "symbol": "ESRT",
+      "name": "EMPIRE STATE REALTY REIT INC TRUST",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2830900.0
+    },
+    {
       "symbol": "ESS",
       "name": "Essex Property Trust",
       "sector": "Real Estate",
@@ -1335,6 +2252,41 @@
       "name": "Entergy",
       "sector": "Utilities",
       "source": "sp500"
+    },
+    {
+      "symbol": "EU",
+      "name": "ENCORE ENERGY CORP",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2046200.0
+    },
+    {
+      "symbol": "EVC",
+      "name": "ENTRAVISION COMMUNICATIONS CORP CL",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 2327000.0
+    },
+    {
+      "symbol": "EVGO",
+      "name": "EVGO INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2197800.0
+    },
+    {
+      "symbol": "EVH",
+      "name": "EVOLENT HEALTH INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3507800.0
+    },
+    {
+      "symbol": "EVLV",
+      "name": "EVOLV TECHNOLOGIES HOLDINGS INC CL",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2296400.0
     },
     {
       "symbol": "EVRG",
@@ -1361,6 +2313,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "EXFY",
+      "name": "EXPENSIFY INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1572300.0
+    },
+    {
       "symbol": "EXPD",
       "name": "Expeditors International",
       "sector": "Industrials",
@@ -1379,6 +2338,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "EXTR",
+      "name": "EXTREME NETWORKS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2099900.0
+    },
+    {
+      "symbol": "EYE",
+      "name": "NATIONAL VISION HOLDINGS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2006000.0
+    },
+    {
       "symbol": "F",
       "name": "Ford Motor Company",
       "sector": "Consumer Discretionary",
@@ -1395,6 +2368,20 @@
       "name": "Fastenal",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "FATE",
+      "name": "FATE THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1365800.0
+    },
+    {
+      "symbol": "FBP",
+      "name": "FIRST BANCORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2979600.0
     },
     {
       "symbol": "FCX",
@@ -1452,6 +2439,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "FIGS",
+      "name": "FIGS INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1814900.0
+    },
+    {
+      "symbol": "FIP",
+      "name": "FTAI INFRASTRUCTURE INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1251800.0
+    },
+    {
       "symbol": "FIS",
       "name": "Fidelity National Information Services",
       "sector": "Financials",
@@ -1468,6 +2469,13 @@
       "name": "Fifth Third Bancorp",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "FIVN",
+      "name": "FIVE9 INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1900900.0
     },
     {
       "symbol": "FIX",
@@ -1488,6 +2496,34 @@
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 10140500.0
+    },
+    {
+      "symbol": "FLR",
+      "name": "FLUOR CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2307000.0
+    },
+    {
+      "symbol": "FLY",
+      "name": "FIREFLY AEROSPACE INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 4211600.0
+    },
+    {
+      "symbol": "FLYW",
+      "name": "FLYWIRE CORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2044800.0
+    },
+    {
+      "symbol": "FORM",
+      "name": "FORMFACTOR INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2199000.0
     },
     {
       "symbol": "FOX",
@@ -1540,6 +2576,41 @@
       "source": "sp500"
     },
     {
+      "symbol": "FULC",
+      "name": "FULCRUM THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3313400.0
+    },
+    {
+      "symbol": "FULT",
+      "name": "FULTON FINANCIAL CORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1396600.0
+    },
+    {
+      "symbol": "FUN",
+      "name": "SIX FLAGS ENTERTAINMENT CORP",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2666700.0
+    },
+    {
+      "symbol": "FWRD",
+      "name": "FORWARD AIR CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1348900.0
+    },
+    {
+      "symbol": "GBTG",
+      "name": "GLOBAL BUSINESS TRAVEL GROUP INC A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2149600.0
+    },
+    {
       "symbol": "GD",
       "name": "General Dynamics",
       "sector": "Industrials",
@@ -1550,6 +2621,13 @@
       "name": "GoDaddy",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "GDYN",
+      "name": "GRID DYNAMICS HOLDINGS INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1445400.0
     },
     {
       "symbol": "GE",
@@ -1577,6 +2655,13 @@
       "daily_volume": 8032800.0
     },
     {
+      "symbol": "GEO",
+      "name": "GEO GROUP INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2738900.0
+    },
+    {
       "symbol": "GERN",
       "name": "GERON CORP",
       "sector": "Healthcare",
@@ -1588,6 +2673,27 @@
       "name": "GE Vernova",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "GEVO",
+      "name": "GEVO INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2888600.0
+    },
+    {
+      "symbol": "GH",
+      "name": "GUARDANT HEALTH INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2213900.0
+    },
+    {
+      "symbol": "GIII",
+      "name": "G III APPAREL GROUP LTD",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1416900.0
     },
     {
       "symbol": "GILD",
@@ -1608,6 +2714,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "GLUE",
+      "name": "MONTE ROSA THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2046100.0
+    },
+    {
       "symbol": "GLW",
       "name": "Corning Inc.",
       "sector": "Technology",
@@ -1620,10 +2733,45 @@
       "source": "sp500"
     },
     {
+      "symbol": "GNL",
+      "name": "GLOBAL NET LEASE INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2242500.0
+    },
+    {
       "symbol": "GNRC",
       "name": "Generac",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "GNW",
+      "name": "GENWORTH FINANCIAL INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2236400.0
+    },
+    {
+      "symbol": "GO",
+      "name": "GROCERY OUTLET HOLDING CORP",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1995100.0
+    },
+    {
+      "symbol": "GOCO",
+      "name": "GOHEALTH INC CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1687100.0
+    },
+    {
+      "symbol": "GOGO",
+      "name": "GOGO INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 3274100.0
     },
     {
       "symbol": "GOOG",
@@ -1651,16 +2799,44 @@
       "source": "sp500"
     },
     {
+      "symbol": "GPGI",
+      "name": "GPGI INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1448900.0
+    },
+    {
       "symbol": "GPN",
       "name": "Global Payments",
       "sector": "Financials",
       "source": "sp500"
     },
     {
+      "symbol": "GPRE",
+      "name": "GREEN PLAINS INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1465300.0
+    },
+    {
       "symbol": "GRMN",
       "name": "Garmin",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "GRND",
+      "name": "GRINDR INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1410400.0
+    },
+    {
+      "symbol": "GRPN",
+      "name": "GROUPON INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1392700.0
     },
     {
       "symbol": "GS",
@@ -1676,10 +2852,24 @@
       "daily_volume": 9363500.0
     },
     {
+      "symbol": "GTX",
+      "name": "GARRETT MOTION INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2389000.0
+    },
+    {
       "symbol": "GWW",
       "name": "W. W. Grainger",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "HAE",
+      "name": "HAEMONETICS CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1343200.0
     },
     {
       "symbol": "HAL",
@@ -1694,6 +2884,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "HASI",
+      "name": "HA SUSTAINABLE INFRASTRUCTURE CAPI",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2445300.0
+    },
+    {
       "symbol": "HBAN",
       "name": "Huntington Bancshares",
       "sector": "Financials",
@@ -1706,10 +2903,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "HCAT",
+      "name": "HEALTH CATALYST INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2543200.0
+    },
+    {
       "symbol": "HD",
       "name": "Home Depot (The)",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "HGV",
+      "name": "HILTON GRAND VACATIONS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1442900.0
     },
     {
       "symbol": "HIG",
@@ -1738,10 +2949,45 @@
       "daily_volume": 20548300.0
     },
     {
+      "symbol": "HLF",
+      "name": "HERBALIFE LTD",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1300500.0
+    },
+    {
+      "symbol": "HLIT",
+      "name": "HARMONIC INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2835900.0
+    },
+    {
+      "symbol": "HLMN",
+      "name": "HILLMAN SOLUTIONS CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2691500.0
+    },
+    {
       "symbol": "HLT",
       "name": "Hilton Worldwide",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "HNST",
+      "name": "THE HONEST COMPANY INC",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1273500.0
+    },
+    {
+      "symbol": "HOMB",
+      "name": "HOME BANCSHARES INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1502300.0
     },
     {
       "symbol": "HON",
@@ -1756,10 +3002,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "HP",
+      "name": "HELMERICH & PAYNE INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1348600.0
+    },
+    {
       "symbol": "HPE",
       "name": "Hewlett Packard Enterprise",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "HPP",
+      "name": "HUDSON PACIFIC PROPERTIES REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1448500.0
     },
     {
       "symbol": "HPQ",
@@ -1772,6 +3032,13 @@
       "name": "Hormel Foods",
       "sector": "Consumer Staples",
       "source": "sp500"
+    },
+    {
+      "symbol": "HRTX",
+      "name": "HERON THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2574900.0
     },
     {
       "symbol": "HSIC",
@@ -1809,6 +3076,20 @@
       "name": "Humana",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "HUMA",
+      "name": "HUMACYTE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3760100.0
+    },
+    {
+      "symbol": "HUT",
+      "name": "HUT  CORP",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3587400.0
     },
     {
       "symbol": "HWM",
@@ -1855,6 +3136,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "IDYA",
+      "name": "IDEAYA BIOSCIENCES INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2573700.0
+    },
+    {
+      "symbol": "IE",
+      "name": "IVANHOE ELECTRIC INC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 1945000.0
+    },
+    {
       "symbol": "IEX",
       "name": "IDEX Corporation",
       "sector": "Industrials",
@@ -1865,6 +3160,13 @@
       "name": "International Flavors & Fragrances",
       "sector": "Materials",
       "source": "sp500"
+    },
+    {
+      "symbol": "IHRT",
+      "name": "IHEARTMEDIA INC CLASS A",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 2483500.0
     },
     {
       "symbol": "INCY",
@@ -1878,6 +3180,13 @@
       "sector": "Technology",
       "source": "russell2000",
       "daily_volume": 10491400.0
+    },
+    {
+      "symbol": "INN",
+      "name": "SUMMIT HOTEL PROPERTIES REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2117800.0
     },
     {
       "symbol": "INSM",
@@ -1896,6 +3205,13 @@
       "name": "Intuit",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "INV",
+      "name": "INNVENTURE INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1219600.0
     },
     {
       "symbol": "INVH",
@@ -1942,6 +3258,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "IRT",
+      "name": "INDEPENDENCE REALTY INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 3712300.0
+    },
+    {
+      "symbol": "IRWD",
+      "name": "IRONWOOD PHARMA INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1502100.0
+    },
+    {
       "symbol": "ISRG",
       "name": "Intuitive Surgical",
       "sector": "Healthcare",
@@ -1958,6 +3288,20 @@
       "name": "Illinois Tool Works",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "IVR",
+      "name": "INVESCO MORTGAGE CAPITAL REIT INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1380300.0
+    },
+    {
+      "symbol": "IVT",
+      "name": "INVENTRUST PROPERTIES CORP",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2707800.0
     },
     {
       "symbol": "IVZ",
@@ -1978,6 +3322,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "JBI",
+      "name": "JANUS INTERNATIONAL GROUP INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2342100.0
+    },
+    {
+      "symbol": "JBIO",
+      "name": "JADE BIOSCIENCES INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1466300.0
+    },
+    {
       "symbol": "JBL",
       "name": "Jabil",
       "sector": "Technology",
@@ -1995,6 +3353,13 @@
       "name": "Johnson Controls",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "JELD",
+      "name": "JELD WEN HOLDING INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1438300.0
     },
     {
       "symbol": "JKHY",
@@ -2022,6 +3387,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "KALV",
+      "name": "KALVISTA PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1872600.0
+    },
+    {
       "symbol": "KDP",
       "name": "Keurig Dr Pepper",
       "sector": "Consumer Staples",
@@ -2038,6 +3410,13 @@
       "name": "Keysight Technologies",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "KGS",
+      "name": "KODIAK GAS SERVICES INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2032000.0
     },
     {
       "symbol": "KHC",
@@ -2102,6 +3481,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "KREF",
+      "name": "KKR REAL ESTATE FINANCE INC TRUST",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2026900.0
+    },
+    {
+      "symbol": "KRG",
+      "name": "KITE REALTY GROUP TRUST REIT",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2504700.0
+    },
+    {
       "symbol": "KSS",
       "name": "KOHLS CORP",
       "sector": "Consumer Discretionary",
@@ -2109,10 +3502,38 @@
       "daily_volume": 5896200.0
     },
     {
+      "symbol": "KTOS",
+      "name": "KRATOS DEFENSE AND SECURITY SOLUTI",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 3182300.0
+    },
+    {
+      "symbol": "KULR",
+      "name": "KULR TECHNOLOGY GROUP INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1896100.0
+    },
+    {
+      "symbol": "KURA",
+      "name": "KURA ONCOLOGY INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1426100.0
+    },
+    {
       "symbol": "KVUE",
       "name": "Kenvue",
       "sector": "Consumer Staples",
       "source": "sp500"
+    },
+    {
+      "symbol": "KW",
+      "name": "KENNEDY WILSON HOLDINGS INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 3784500.0
     },
     {
       "symbol": "L",
@@ -2128,16 +3549,65 @@
       "daily_volume": 18231300.0
     },
     {
+      "symbol": "LAUR",
+      "name": "LAUREATE EDUCATION INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1355900.0
+    },
+    {
+      "symbol": "LBRT",
+      "name": "LIBERTY ENERGY INC CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2822600.0
+    },
+    {
+      "symbol": "LC",
+      "name": "LENDINGCLUB CORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1389600.0
+    },
+    {
+      "symbol": "LDI",
+      "name": "LOANDEPOT INC CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1981000.0
+    },
+    {
       "symbol": "LDOS",
       "name": "Leidos",
       "sector": "Industrials",
       "source": "sp500"
     },
     {
+      "symbol": "LEG",
+      "name": "LEGGETT & PLATT INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1789200.0
+    },
+    {
       "symbol": "LEN",
       "name": "Lennar",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "LFST",
+      "name": "LIFESTANCE HEALTH GROUP INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2108800.0
+    },
+    {
+      "symbol": "LFVN",
+      "name": "LIFEVANTAGE CORP",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1441400.0
     },
     {
       "symbol": "LH",
@@ -2164,6 +3634,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "LION",
+      "name": "LIONSGATE STUDIOS CORP",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 2019900.0
+    },
+    {
       "symbol": "LITE",
       "name": "Lumentum",
       "sector": "Technology",
@@ -2174,6 +3651,20 @@
       "name": "Lilly (Eli)",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "LMND",
+      "name": "LEMONADE INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1835300.0
+    },
+    {
+      "symbol": "LMRI",
+      "name": "LUMEXA IMAGING HOLDINGS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1707900.0
     },
     {
       "symbol": "LMT",
@@ -2194,10 +3685,38 @@
       "source": "sp500"
     },
     {
+      "symbol": "LPRO",
+      "name": "OPEN LENDING CORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1538900.0
+    },
+    {
+      "symbol": "LQDA",
+      "name": "LIQUIDIA CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3159000.0
+    },
+    {
       "symbol": "LRCX",
       "name": "Lam Research",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "LRMR",
+      "name": "LARIMAR THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1464600.0
+    },
+    {
+      "symbol": "LTH",
+      "name": "LIFE TIME GROUP HOLDINGS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2418900.0
     },
     {
       "symbol": "LULU",
@@ -2244,6 +3763,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "LZ",
+      "name": "LEGALZOOM COM INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1809000.0
+    },
+    {
       "symbol": "MA",
       "name": "Mastercard",
       "sector": "Financials",
@@ -2254,6 +3780,13 @@
       "name": "Mid-America Apartment Communities",
       "sector": "Real Estate",
       "source": "sp500"
+    },
+    {
+      "symbol": "MAC",
+      "name": "MACERICH REIT",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1995000.0
     },
     {
       "symbol": "MAR",
@@ -2273,6 +3806,13 @@
       "name": "Masco",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "MBC",
+      "name": "MASTERBRAND INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 3416300.0
     },
     {
       "symbol": "MCD",
@@ -2329,10 +3869,45 @@
       "source": "sp500"
     },
     {
+      "symbol": "MFA",
+      "name": "MFA FINANCIAL INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1455300.0
+    },
+    {
       "symbol": "MGM",
       "name": "MGM Resorts",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "MGNI",
+      "name": "MAGNITE INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1467600.0
+    },
+    {
+      "symbol": "MGY",
+      "name": "MAGNOLIA OIL GAS CORP CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1964600.0
+    },
+    {
+      "symbol": "MIAX",
+      "name": "MIAMI INTERNATIONAL HOLDINGS INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1677100.0
+    },
+    {
+      "symbol": "MIR",
+      "name": "MIRION TECHNOLOGIES INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2536800.0
     },
     {
       "symbol": "MKC",
@@ -2347,10 +3922,31 @@
       "source": "sp500"
     },
     {
+      "symbol": "MLYS",
+      "name": "MINERALYS THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2021500.0
+    },
+    {
       "symbol": "MMM",
       "name": "3M",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "MNKD",
+      "name": "MANNKIND CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2341000.0
+    },
+    {
+      "symbol": "MNRO",
+      "name": "MONRO INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1387800.0
     },
     {
       "symbol": "MNST",
@@ -2383,6 +3979,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "MQ",
+      "name": "MARQETA INC CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3607500.0
+    },
+    {
       "symbol": "MRK",
       "name": "Merck & Co.",
       "sector": "Healthcare",
@@ -2399,6 +4002,20 @@
       "name": "Marsh McLennan",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "MRTN",
+      "name": "MARTEN TRANSPORT LTD",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1563400.0
+    },
+    {
+      "symbol": "MRVI",
+      "name": "MARAVAI LIFESCIENCES HOLDINGS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3177300.0
     },
     {
       "symbol": "MRVL",
@@ -2455,11 +4072,67 @@
       "source": "sp500"
     },
     {
+      "symbol": "MUR",
+      "name": "MURPHY OIL CORP",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2039400.0
+    },
+    {
       "symbol": "MVIS",
       "name": "MICROVISION INC",
       "sector": "Technology",
       "source": "russell2000",
       "daily_volume": 5472400.0
+    },
+    {
+      "symbol": "MVST",
+      "name": "MICROVAST HOLDINGS INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 3383100.0
+    },
+    {
+      "symbol": "MXL",
+      "name": "MAXLINEAR INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3715500.0
+    },
+    {
+      "symbol": "MYPS",
+      "name": "PLAYSTUDIOS INC CLASS A",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1489300.0
+    },
+    {
+      "symbol": "NABL",
+      "name": "N ABLE INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2971300.0
+    },
+    {
+      "symbol": "NAT",
+      "name": "NORDIC AMERICAN TANKERS LTD",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 3299600.0
+    },
+    {
+      "symbol": "NAVN",
+      "name": "NAVAN INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2490700.0
+    },
+    {
+      "symbol": "NB",
+      "name": "NIOCORP DEVELOPMENTS LTD",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 3361400.0
     },
     {
       "symbol": "NCLH",
@@ -2492,10 +4165,38 @@
       "source": "sp500"
     },
     {
+      "symbol": "NEOG",
+      "name": "NEOGEN CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1631200.0
+    },
+    {
+      "symbol": "NEXT",
+      "name": "NEXTDECADE CORP",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1379000.0
+    },
+    {
+      "symbol": "NFE",
+      "name": "NEW FORTRESS ENERGY INC CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2583100.0
+    },
+    {
       "symbol": "NFLX",
       "name": "Netflix",
       "sector": "Communication",
       "source": "sp500"
+    },
+    {
+      "symbol": "NG",
+      "name": "NOVAGOLD RESOURCES INC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 2149600.0
     },
     {
       "symbol": "NI",
@@ -2510,6 +4211,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "NMRK",
+      "name": "NEWMARK GROUP INC CLASS A",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1404700.0
+    },
+    {
+      "symbol": "NN",
+      "name": "NEXTNAV INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1379600.0
+    },
+    {
       "symbol": "NNE",
       "name": "NANO NUCLEAR ENERGY INC",
       "sector": "Industrials",
@@ -2521,6 +4236,13 @@
       "name": "Northrop Grumman",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "NOG",
+      "name": "NORTHERN OIL AND GAS INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1789100.0
     },
     {
       "symbol": "NOW",
@@ -2554,16 +4276,44 @@
       "source": "sp500"
     },
     {
+      "symbol": "NTLA",
+      "name": "INTELLIA THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3418700.0
+    },
+    {
       "symbol": "NTRS",
       "name": "Northern Trust",
       "sector": "Financials",
       "source": "sp500"
     },
     {
+      "symbol": "NTST",
+      "name": "NETSTREIT CORP",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1590200.0
+    },
+    {
       "symbol": "NUE",
       "name": "Nucor",
       "sector": "Materials",
       "source": "sp500"
+    },
+    {
+      "symbol": "NUVB",
+      "name": "NUVATION BIO INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2964300.0
+    },
+    {
+      "symbol": "NUVL",
+      "name": "NUVALENT INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1225700.0
     },
     {
       "symbol": "NVAX",
@@ -2604,10 +4354,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "NXDR",
+      "name": "NEXTDOOR HOLDINGS INC CLASS A",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1242500.0
+    },
+    {
       "symbol": "NXPI",
       "name": "NXP Semiconductors",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "NXT",
+      "name": "NEXTPOWER INC CLASS A",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2078100.0
     },
     {
       "symbol": "NXXT",
@@ -2623,10 +4387,31 @@
       "source": "sp500"
     },
     {
+      "symbol": "OCUL",
+      "name": "OCULAR THERAPEUTIX INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1502400.0
+    },
+    {
       "symbol": "ODFL",
       "name": "Old Dominion",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "OI",
+      "name": "O I GLASS INC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 3732700.0
+    },
+    {
+      "symbol": "OIS",
+      "name": "OIL STATES INTERNATIONAL INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1330400.0
     },
     {
       "symbol": "OKE",
@@ -2642,16 +4427,58 @@
       "daily_volume": 8895000.0
     },
     {
+      "symbol": "OLMA",
+      "name": "OLEMA PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1377400.0
+    },
+    {
+      "symbol": "OLPX",
+      "name": "OLAPLEX HOLDINGS INC",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 3628400.0
+    },
+    {
       "symbol": "OMC",
       "name": "Omnicom Group",
       "sector": "Communication",
       "source": "sp500"
     },
     {
+      "symbol": "OMER",
+      "name": "OMEROS CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1406300.0
+    },
+    {
       "symbol": "ON",
       "name": "ON Semiconductor",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "ONB",
+      "name": "OLD NATIONAL BANCORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3475300.0
+    },
+    {
+      "symbol": "OPCH",
+      "name": "OPTION CARE HEALTH INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3053600.0
+    },
+    {
+      "symbol": "OPK",
+      "name": "OPKO HEALTH INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1938100.0
     },
     {
       "symbol": "OPTU",
@@ -2674,6 +4501,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "ORIC",
+      "name": "ORIC PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1762000.0
+    },
+    {
+      "symbol": "ORKA",
+      "name": "ORUKA THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1214000.0
+    },
+    {
       "symbol": "ORLY",
       "name": "O’Reilly Automotive",
       "sector": "Consumer Discretionary",
@@ -2693,6 +4534,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "OUST",
+      "name": "OUSTER INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3380900.0
+    },
+    {
+      "symbol": "OUT",
+      "name": "OUTFRONT MEDIA INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1396400.0
+    },
+    {
       "symbol": "OXY",
       "name": "Occidental Petroleum",
       "sector": "Energy",
@@ -2706,16 +4561,58 @@
       "daily_volume": 4222200.0
     },
     {
+      "symbol": "PACS",
+      "name": "PACS GROUP INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1213700.0
+    },
+    {
+      "symbol": "PAGS",
+      "name": "PAGSEGURO DIGITAL LTD CLASS A",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2579200.0
+    },
+    {
       "symbol": "PANW",
       "name": "Palo Alto Networks",
       "sector": "Technology",
       "source": "sp500"
     },
     {
+      "symbol": "PAR",
+      "name": "PAR TECHNOLOGY CORP",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1380400.0
+    },
+    {
+      "symbol": "PAYO",
+      "name": "PAYONEER GLOBAL INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2381300.0
+    },
+    {
       "symbol": "PAYX",
       "name": "Paychex",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "PBF",
+      "name": "PBF ENERGY INC CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1701000.0
+    },
+    {
+      "symbol": "PBI",
+      "name": "PITNEY BOWES INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2868700.0
     },
     {
       "symbol": "PCAR",
@@ -2737,16 +4634,58 @@
       "daily_volume": 4307000.0
     },
     {
+      "symbol": "PCVX",
+      "name": "VAXCYTE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1341200.0
+    },
+    {
+      "symbol": "PD",
+      "name": "PAGERDUTY INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1793000.0
+    },
+    {
       "symbol": "PDD",
       "name": "PDD Holdings",
       "sector": "Technology",
       "source": "nasdaq100"
     },
     {
+      "symbol": "PDYN",
+      "name": "PALLADYNE AI CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2012800.0
+    },
+    {
+      "symbol": "PEB",
+      "name": "PEBBLEBROOK HOTEL TRUST REIT",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1973000.0
+    },
+    {
+      "symbol": "PECO",
+      "name": "PHILLIPS EDISON AND COMPANY INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 1440200.0
+    },
+    {
       "symbol": "PEG",
       "name": "Public Service Enterprise Group",
       "sector": "Utilities",
       "source": "sp500"
+    },
+    {
+      "symbol": "PENG",
+      "name": "PENGUIN SOLUTIONS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3810200.0
     },
     {
       "symbol": "PEP",
@@ -2780,10 +4719,24 @@
       "daily_volume": 4630100.0
     },
     {
+      "symbol": "PGNY",
+      "name": "PROGYNY INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1612900.0
+    },
+    {
       "symbol": "PGR",
       "name": "Progressive Corporation",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "PGY",
+      "name": "PAGAYA TECHNOLOGIES LTD CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3378000.0
     },
     {
       "symbol": "PH",
@@ -2809,6 +4762,20 @@
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 20076100.0
+    },
+    {
+      "symbol": "PLAB",
+      "name": "PHOTRONICS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2006200.0
+    },
+    {
+      "symbol": "PLAY",
+      "name": "DAVE AND BUSTERS ENTERTAINMENT INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1512800.0
     },
     {
       "symbol": "PLD",
@@ -2878,6 +4845,41 @@
       "source": "sp500"
     },
     {
+      "symbol": "PPTA",
+      "name": "PERPETUA RESOURCES CORP",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 1355300.0
+    },
+    {
+      "symbol": "PRCT",
+      "name": "PROCEPT BIOROBOTICS CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1312500.0
+    },
+    {
+      "symbol": "PRIM",
+      "name": "PRIMORIS SERVICES CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1709400.0
+    },
+    {
+      "symbol": "PRME",
+      "name": "PRIME MEDICINE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2459600.0
+    },
+    {
+      "symbol": "PROP",
+      "name": "PRAIRIE OPERATING",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1556900.0
+    },
+    {
       "symbol": "PRU",
       "name": "Prudential Financial",
       "sector": "Financials",
@@ -2896,6 +4898,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "PSNL",
+      "name": "PERSONALIS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2338100.0
+    },
+    {
       "symbol": "PSX",
       "name": "Phillips 66",
       "sector": "Energy",
@@ -2906,6 +4915,13 @@
       "name": "PTC Inc.",
       "sector": "Technology",
       "source": "sp500"
+    },
+    {
+      "symbol": "PTCT",
+      "name": "PTC THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1293400.0
     },
     {
       "symbol": "PTEN",
@@ -2920,6 +4936,13 @@
       "sector": "Consumer Discretionary",
       "source": "russell2000",
       "daily_volume": 12024000.0
+    },
+    {
+      "symbol": "PUMP",
+      "name": "PROPETRO HOLDING CORP",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 4087500.0
     },
     {
       "symbol": "PWR",
@@ -2953,6 +4976,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "QDEL",
+      "name": "QUIDELORTHO CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1363400.0
+    },
+    {
       "symbol": "QSI",
       "name": "QUANTUM SI INC CLASS A",
       "sector": "Healthcare",
@@ -2967,11 +4997,32 @@
       "daily_volume": 12364000.0
     },
     {
+      "symbol": "RAMP",
+      "name": "LIVERAMP HOLDINGS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1591300.0
+    },
+    {
+      "symbol": "RC",
+      "name": "READY CAPITAL CORP",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1942200.0
+    },
+    {
       "symbol": "RCAT",
       "name": "RED CAT HOLDINGS INC",
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 10064800.0
+    },
+    {
+      "symbol": "RCKT",
+      "name": "ROCKET PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2359500.0
     },
     {
       "symbol": "RCL",
@@ -2985,6 +5036,20 @@
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 33263000.0
+    },
+    {
+      "symbol": "REAL",
+      "name": "THE REALREAL INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2459100.0
+    },
+    {
+      "symbol": "REAX",
+      "name": "REAL BROKERAGE INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 3426500.0
     },
     {
       "symbol": "REG",
@@ -3004,6 +5069,27 @@
       "sector": "Financials",
       "source": "russell2000",
       "daily_volume": 4746600.0
+    },
+    {
+      "symbol": "REPL",
+      "name": "REPLIMUNE GROUP INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3141700.0
+    },
+    {
+      "symbol": "RES",
+      "name": "RPC INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1406600.0
+    },
+    {
+      "symbol": "REZI",
+      "name": "RESIDEO TECHNOLOGIES INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1243400.0
     },
     {
       "symbol": "RF",
@@ -3043,6 +5129,27 @@
       "name": "Ralph Lauren Corporation",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "RLAY",
+      "name": "RELAY THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2917400.0
+    },
+    {
+      "symbol": "RLJ",
+      "name": "RLJ LODGING TRUST REIT",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2907200.0
+    },
+    {
+      "symbol": "RMBS",
+      "name": "RAMBUS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3253900.0
     },
     {
       "symbol": "RMD",
@@ -3088,10 +5195,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "RSI",
+      "name": "RUSH STREET INTERACTIVE INC CLASS",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 3948900.0
+    },
+    {
       "symbol": "RTX",
       "name": "RTX Corporation",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "RUM",
+      "name": "RUMBLE INC CLASS A",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 2686800.0
     },
     {
       "symbol": "RUN",
@@ -3105,6 +5226,20 @@
       "name": "Revvity",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "RWT",
+      "name": "REDWOOD TRUST REIT INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1661800.0
+    },
+    {
+      "symbol": "RXO",
+      "name": "RXO INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1717700.0
     },
     {
       "symbol": "RXRX",
@@ -3121,11 +5256,39 @@
       "daily_volume": 10711400.0
     },
     {
+      "symbol": "RZLT",
+      "name": "REZOLUTE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2256900.0
+    },
+    {
       "symbol": "RZLV",
       "name": "REZOLVE AI PLC",
       "sector": "Technology",
       "source": "russell2000",
       "daily_volume": 10922200.0
+    },
+    {
+      "symbol": "SABR",
+      "name": "SABRE CORP",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2561600.0
+    },
+    {
+      "symbol": "SAFX",
+      "name": "XCF GLOBAL INC CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 4018200.0
+    },
+    {
+      "symbol": "SANA",
+      "name": "SANA BIOTECHNOLOGY INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3343200.0
     },
     {
       "symbol": "SATL",
@@ -3147,6 +5310,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "SBH",
+      "name": "SALLY BEAUTY HOLDINGS INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1479300.0
+    },
+    {
       "symbol": "SBRA",
       "name": "SABRA HEALTH CARE REIT INC",
       "sector": "Real Estate",
@@ -3166,11 +5336,46 @@
       "source": "sp500"
     },
     {
+      "symbol": "SCVL",
+      "name": "SHOE CARNIVAL INC",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1285400.0
+    },
+    {
+      "symbol": "SEI",
+      "name": "SOLARIS OILFIELD INFRASTRUCTURE IN",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1715100.0
+    },
+    {
+      "symbol": "SEM",
+      "name": "SELECT MEDICAL HOLDINGS CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1634700.0
+    },
+    {
       "symbol": "SERV",
       "name": "SERVE ROBOTICS INC",
       "sector": "Consumer Discretionary",
       "source": "russell2000",
       "daily_volume": 4504900.0
+    },
+    {
+      "symbol": "SFIX",
+      "name": "STITCH FIX INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1630000.0
+    },
+    {
+      "symbol": "SFL",
+      "name": "SFL LTD",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1318800.0
     },
     {
       "symbol": "SG",
@@ -3180,11 +5385,39 @@
       "daily_volume": 6793600.0
     },
     {
+      "symbol": "SGHC",
+      "name": "SUPER GROUP LTD",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2834200.0
+    },
+    {
+      "symbol": "SHAK",
+      "name": "SHAKE SHACK INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2550000.0
+    },
+    {
       "symbol": "SHLS",
       "name": "SHOALS TECHNOLOGIES GROUP INC CLAS",
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 4854200.0
+    },
+    {
+      "symbol": "SHO",
+      "name": "SUNSTONE HOTEL INVESTORS REIT INC",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2024000.0
+    },
+    {
+      "symbol": "SHOO",
+      "name": "STEVEN MADDEN LTD",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1309700.0
     },
     {
       "symbol": "SHOP",
@@ -3211,11 +5444,39 @@
       "source": "sp500"
     },
     {
+      "symbol": "SLDP",
+      "name": "SOLID POWER INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 4164300.0
+    },
+    {
+      "symbol": "SLG",
+      "name": "SL GREEN REALTY REIT CORP",
+      "sector": "Real Estate",
+      "source": "russell2000",
+      "daily_volume": 2419800.0
+    },
+    {
+      "symbol": "SLQT",
+      "name": "SELECTQUOTE INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 1589900.0
+    },
+    {
       "symbol": "SLS",
       "name": "SELLAS LIFE SCIENCES GROUP INC",
       "sector": "Healthcare",
       "source": "russell2000",
       "daily_volume": 5856700.0
+    },
+    {
+      "symbol": "SM",
+      "name": "SM ENERGY",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 2467000.0
     },
     {
       "symbol": "SMCI",
@@ -3224,11 +5485,25 @@
       "source": "sp500"
     },
     {
+      "symbol": "SMPL",
+      "name": "THE SIMPLY GOOD FOODS COMPANY",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1442700.0
+    },
+    {
       "symbol": "SMR",
       "name": "NUSCALE POWER CORP CLASS A",
       "sector": "Industrials",
       "source": "russell2000",
       "daily_volume": 23181300.0
+    },
+    {
+      "symbol": "SMTC",
+      "name": "SEMTECH CORP",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 3548200.0
     },
     {
       "symbol": "SNA",
@@ -3250,6 +5525,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "SNDX",
+      "name": "SYNDAX PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2338400.0
+    },
+    {
       "symbol": "SNPS",
       "name": "Synopsys",
       "sector": "Technology",
@@ -3260,6 +5542,13 @@
       "name": "Southern Company",
       "sector": "Utilities",
       "source": "sp500"
+    },
+    {
+      "symbol": "SOC",
+      "name": "SABLE OFFSHORE CORP CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 3619700.0
     },
     {
       "symbol": "SOLV",
@@ -3287,6 +5576,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "SPRY",
+      "name": "ARS PHARMACEUTICALS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1909500.0
+    },
+    {
       "symbol": "SPWR",
       "name": "SUNPOWER INC",
       "sector": "Industrials",
@@ -3300,10 +5596,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "SSRM",
+      "name": "SSR MINING INC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 2158500.0
+    },
+    {
       "symbol": "STE",
       "name": "Steris",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "STIM",
+      "name": "NEURONETICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1225600.0
     },
     {
       "symbol": "STLD",
@@ -3362,6 +5672,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "SXC",
+      "name": "SUNCOKE ENERGY INC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 1268400.0
+    },
+    {
       "symbol": "SYF",
       "name": "Synchrony Financial",
       "sector": "Financials",
@@ -3386,16 +5703,51 @@
       "source": "sp500"
     },
     {
+      "symbol": "TALK",
+      "name": "TALKSPACE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1681400.0
+    },
+    {
+      "symbol": "TALO",
+      "name": "TALOS ENERGY INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1470500.0
+    },
+    {
       "symbol": "TAP",
       "name": "Molson Coors Beverage Company",
       "sector": "Consumer Staples",
       "source": "sp500"
     },
     {
+      "symbol": "TDAY",
+      "name": "USA TODAY INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1843400.0
+    },
+    {
       "symbol": "TDG",
       "name": "TransDigm Group",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "TDOC",
+      "name": "TELADOC HEALTH INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2755900.0
+    },
+    {
+      "symbol": "TDUP",
+      "name": "THREDUP INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1287300.0
     },
     {
       "symbol": "TDY",
@@ -3436,6 +5788,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "TEX",
+      "name": "TEREX CORP",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1264700.0
+    },
+    {
       "symbol": "TFC",
       "name": "Truist Financial",
       "sector": "Financials",
@@ -3446,6 +5805,27 @@
       "name": "Target Corporation",
       "sector": "Consumer Staples",
       "source": "sp500"
+    },
+    {
+      "symbol": "TGTX",
+      "name": "TG THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1555900.0
+    },
+    {
+      "symbol": "TH",
+      "name": "TARGET HOSPITALITY CORP",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 1211000.0
+    },
+    {
+      "symbol": "TIC",
+      "name": "TIC SOLUTIONS INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1993700.0
     },
     {
       "symbol": "TJX",
@@ -3479,11 +5859,25 @@
       "source": "sp500"
     },
     {
+      "symbol": "TNDM",
+      "name": "TANDEM DIABETES CARE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 2995000.0
+    },
+    {
       "symbol": "TNGX",
       "name": "TANGO THERAPEUTICS INC",
       "sector": "Healthcare",
       "source": "russell2000",
       "daily_volume": 21806700.0
+    },
+    {
+      "symbol": "TOI",
+      "name": "ONCOLOGY INSTITUTE INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3009900.0
     },
     {
       "symbol": "TPL",
@@ -3510,6 +5904,13 @@
       "source": "nasdaq100"
     },
     {
+      "symbol": "TRIP",
+      "name": "TRIPADVISOR INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 3660200.0
+    },
+    {
       "symbol": "TRMB",
       "name": "Trimble Inc.",
       "sector": "Technology",
@@ -3522,6 +5923,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "TROX",
+      "name": "TRONOX HOLDINGS PLC",
+      "sector": "Materials",
+      "source": "russell2000",
+      "daily_volume": 2667400.0
+    },
+    {
       "symbol": "TRV",
       "name": "Travelers Companies (The)",
       "sector": "Financials",
@@ -3532,6 +5940,13 @@
       "name": "Tractor Supply",
       "sector": "Consumer Discretionary",
       "source": "sp500"
+    },
+    {
+      "symbol": "TSHA",
+      "name": "TAYSHA GENE THERAPIES INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3501700.0
     },
     {
       "symbol": "TSLA",
@@ -3558,10 +5973,45 @@
       "source": "sp500"
     },
     {
+      "symbol": "TTI",
+      "name": "TETRA TECHNOLOGIES INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1219400.0
+    },
+    {
+      "symbol": "TTMI",
+      "name": "TTM TECHNOLOGIES INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2494100.0
+    },
+    {
       "symbol": "TTWO",
       "name": "Take-Two Interactive",
       "sector": "Communication",
       "source": "sp500"
+    },
+    {
+      "symbol": "TVTX",
+      "name": "TRAVERE THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1943700.0
+    },
+    {
+      "symbol": "TWST",
+      "name": "TWIST BIOSCIENCE CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1395100.0
+    },
+    {
+      "symbol": "TXG",
+      "name": "10X GENOMICS INC CLASS A",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3106700.0
     },
     {
       "symbol": "TXN",
@@ -3627,6 +6077,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "ULCC",
+      "name": "FRONTIER GROUP HOLDINGS INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 3350800.0
+    },
+    {
       "symbol": "ULTA",
       "name": "Ulta Beauty",
       "sector": "Consumer Discretionary",
@@ -3639,6 +6096,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "UNIT",
+      "name": "UNITI GROUP INC",
+      "sector": "Communication",
+      "source": "russell2000",
+      "daily_volume": 1474500.0
+    },
+    {
       "symbol": "UNP",
       "name": "Union Pacific Corporation",
       "sector": "Industrials",
@@ -3649,6 +6113,20 @@
       "name": "United Parcel Service",
       "sector": "Industrials",
       "source": "sp500"
+    },
+    {
+      "symbol": "UPST",
+      "name": "UPSTART HOLDINGS INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3936100.0
+    },
+    {
+      "symbol": "UPWK",
+      "name": "UPWORK INC",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 2253400.0
     },
     {
       "symbol": "URI",
@@ -3670,6 +6148,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "UTZ",
+      "name": "UTZ BRANDS INC CLASS A",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1615800.0
+    },
+    {
       "symbol": "UUUU",
       "name": "ENERGY FUELS INC",
       "sector": "Energy",
@@ -3689,6 +6174,13 @@
       "source": "sp500"
     },
     {
+      "symbol": "VERX",
+      "name": "VERTEX INC CLASS A",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1266700.0
+    },
+    {
       "symbol": "VIAV",
       "name": "VIAVI SOLUTIONS INC",
       "sector": "Technology",
@@ -3700,6 +6192,27 @@
       "name": "Vici Properties",
       "sector": "Real Estate",
       "source": "sp500"
+    },
+    {
+      "symbol": "VIR",
+      "name": "VIR BIOTECHNOLOGY INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1332800.0
+    },
+    {
+      "symbol": "VISN",
+      "name": "VISTANCE NETWORKS INC",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2963600.0
+    },
+    {
+      "symbol": "VITL",
+      "name": "VITAL FARMS INC",
+      "sector": "Consumer Staples",
+      "source": "russell2000",
+      "daily_volume": 1969000.0
     },
     {
       "symbol": "VLO",
@@ -3714,10 +6227,24 @@
       "source": "sp500"
     },
     {
+      "symbol": "VLY",
+      "name": "VALLEY NATIONAL",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 3965400.0
+    },
+    {
       "symbol": "VMC",
       "name": "Vulcan Materials Company",
       "sector": "Materials",
       "source": "sp500"
+    },
+    {
+      "symbol": "VOYG",
+      "name": "VOYAGER TECHNOLOGIES INC CLASS A",
+      "sector": "Industrials",
+      "source": "russell2000",
+      "daily_volume": 1581400.0
     },
     {
       "symbol": "VRRM",
@@ -3771,6 +6298,20 @@
       "source": "sp500"
     },
     {
+      "symbol": "VSTM",
+      "name": "VERASTEM INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 1865900.0
+    },
+    {
+      "symbol": "VSXY",
+      "name": "VICTORIA S SECRET",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 2828600.0
+    },
+    {
       "symbol": "VTR",
       "name": "Ventas",
       "sector": "Real Estate",
@@ -3781,6 +6322,20 @@
       "name": "Viatris",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "VUZI",
+      "name": "VUZIX CORP",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 1297800.0
+    },
+    {
+      "symbol": "VYX",
+      "name": "NCR VOYIX CORP",
+      "sector": "Technology",
+      "source": "russell2000",
+      "daily_volume": 2318600.0
     },
     {
       "symbol": "VZ",
@@ -3799,6 +6354,13 @@
       "name": "Waters Corporation",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "WAY",
+      "name": "WAYSTAR HOLDING CORP",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3137500.0
     },
     {
       "symbol": "WBD",
@@ -3862,10 +6424,31 @@
       "source": "sp500"
     },
     {
+      "symbol": "WOOF",
+      "name": "PETCO HEALTH AND WELLNESS COMPANY",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 3023700.0
+    },
+    {
       "symbol": "WRB",
       "name": "W. R. Berkley Corporation",
       "sector": "Financials",
       "source": "sp500"
+    },
+    {
+      "symbol": "WRBY",
+      "name": "WARBY PARKER INC CLASS A",
+      "sector": "Consumer Discretionary",
+      "source": "russell2000",
+      "daily_volume": 3637800.0
+    },
+    {
+      "symbol": "WSBC",
+      "name": "WESBANCO INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2800500.0
     },
     {
       "symbol": "WSM",
@@ -3880,6 +6463,27 @@
       "source": "sp500"
     },
     {
+      "symbol": "WT",
+      "name": "WISDOMTREE INC",
+      "sector": "Financials",
+      "source": "russell2000",
+      "daily_volume": 2731600.0
+    },
+    {
+      "symbol": "WTI",
+      "name": "W AND T OFFSHORE INC",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 3224000.0
+    },
+    {
+      "symbol": "WTTR",
+      "name": "SELECT WATER SOLUTIONS INC CLASS A",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1572600.0
+    },
+    {
       "symbol": "WTW",
       "name": "Willis Towers Watson",
       "sector": "Financials",
@@ -3891,6 +6495,13 @@
       "sector": "Technology",
       "source": "russell2000",
       "daily_volume": 23086200.0
+    },
+    {
+      "symbol": "WVE",
+      "name": "WAVE LIFE SCIENCES LTD",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3340700.0
     },
     {
       "symbol": "WY",
@@ -3915,6 +6526,13 @@
       "name": "ExxonMobil",
       "sector": "Energy",
       "source": "sp500"
+    },
+    {
+      "symbol": "XPRO",
+      "name": "EXPRO GROUP HOLDINGS NV",
+      "sector": "Energy",
+      "source": "russell2000",
+      "daily_volume": 1449900.0
     },
     {
       "symbol": "XRX",
@@ -3971,6 +6589,13 @@
       "name": "Zoetis",
       "sector": "Healthcare",
       "source": "sp500"
+    },
+    {
+      "symbol": "ZVRA",
+      "name": "ZEVRA THERAPEUTICS INC",
+      "sector": "Healthcare",
+      "source": "russell2000",
+      "daily_volume": 3518100.0
     }
   ]
 }

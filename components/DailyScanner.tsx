@@ -203,10 +203,15 @@ export function DailyScanner() {
           <span>מומנטום: <b className="ltr text-warn">{data.momentum_universe_size}</b></span>
           <span>נוספו מחוץ למדדים: <b className="ltr text-good">{data.momentum_added_count}</b></span>
           <span>יקום דינמי: <b className="ltr text-text">{data.stock_universe_size}</b> מניות</span>
+          <span>Russell 2000: <b className="ltr text-good">{data.universe_sources.russell2000}</b></span>
           <span>Tier 1 תקינים: <b className="ltr text-text">{data.tier1_valid_count}</b></span>
+          <span>Russell Tier 1: <b className="ltr text-good">{data.russell_tier1_valid_count ?? 0}</b></span>
           <span>Swing Tier 1: <b className="ltr text-warn">{data.swing_tier1_candidate_count ?? 0}</b></span>
+          <span>Russell Swing: <b className="ltr text-warn">{data.russell_swing_tier1_candidate_count ?? 0}</b></span>
           <span>Long Tier 1: <b className="ltr text-good">{data.long_term_tier1_candidate_count ?? 0}</b></span>
+          <span>Russell Long: <b className="ltr text-good">{data.russell_long_term_tier1_candidate_count ?? 0}</b></span>
           <span>Tier 2: <b className="ltr text-accent">{data.tier2_candidate_count}</b></span>
+          <span>Russell Tier 2: <b className="ltr text-accent">{data.russell_tier2_candidate_count ?? 0}</b></span>
           <span>קריאות info: <b className="ltr text-text">{data.tier2_info_calls}</b></span>
           <span>ETFs: <b className="ltr text-text">{data.etf_universe_size}</b></span>
           <span>משך: <b className="ltr text-text">{data.scan_duration_seconds.toFixed(1)}s</b></span>
@@ -437,6 +442,9 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
             </div>
 
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+              {item.source === 'russell2000' && (
+                <Chip label="Universe" value="Russell 2000" color="#3ddc97" />
+              )}
               {(item.strategy === 'swing' || item.strategy === 'etf_swing') &&
                 item.swing_setup?.risk_reward != null && (
                 <Chip label="R:R" value={`1:${item.swing_setup.risk_reward.toFixed(2)}`} color="#3ddc97" />

@@ -319,6 +319,7 @@ export type ScanItem = {
   strategy_label?: string;
   display_score?: number;
   display_rationale?: string[];
+  source?: 'sp500' | 'nasdaq100' | 'russell2000' | string;
   symbol: string;
   name: string;
   sector: string;
@@ -404,11 +405,16 @@ export type ScanResult = {
   momentum_overlap_count: number;
   etf_universe_size: number;
   tier1_valid_count: number;
+  russell_tier1_valid_count?: number;
   swing_tier1_candidate_count?: number;
+  russell_swing_tier1_candidate_count?: number;
   long_term_tier1_candidate_count?: number;
+  russell_long_term_tier1_candidate_count?: number;
   tier2_overlap_count?: number;
   tier2_candidate_count: number;
+  russell_tier2_candidate_count?: number;
   tier2_info_calls: number;
+  russell_evaluated_count?: number;
   tier1_primary_rvol: number;
   tier1_floor_rvol: number;
   scan_duration_seconds: number;

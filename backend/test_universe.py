@@ -54,7 +54,7 @@ USD,US Dollar,Cash and/or Derivatives,Cash
                 "sector": "Industrials",
                 "source": "russell2000",
             }
-            for i in range(160)
+            for i in range(560)
         ]
         holdings.append(dict(holdings[10]))
         excluded = {"R000", "R001", "R002"}
@@ -63,12 +63,12 @@ USD,US Dollar,Cash and/or Derivatives,Cash
             for index, symbol in enumerate(symbols)
         }
 
-        selected = universe._select_liquid_russell(holdings, excluded, limit=125)
+        selected = universe._select_liquid_russell(holdings, excluded, limit=500)
 
         fetched_symbols = volume_mock.call_args.args[0]
         self.assertTrue(excluded.isdisjoint(fetched_symbols))
         self.assertEqual(len(fetched_symbols), len(set(fetched_symbols)))
-        self.assertEqual(len(selected), 125)
+        self.assertEqual(len(selected), 500)
         self.assertTrue(excluded.isdisjoint(item["symbol"] for item in selected))
         self.assertGreaterEqual(
             selected[0]["daily_volume"],

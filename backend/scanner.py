@@ -1064,6 +1064,7 @@ def run_scan(
             if not evaluation:
                 continue
             evaluation["momentum_sources"] = row.get("momentum_sources") or []
+            evaluation["source"] = row.get("source")
             evaluation["scan_paths"] = row.get("scan_paths") or []
             evaluation["scan_rvol"] = round(float(row.get("rvol") or 0.0), 2)
             evaluation["long_term_prefilter_score"] = row.get(
@@ -1303,15 +1304,35 @@ def run_scan(
         ),
         "etf_universe_size": len(ETFS),
         "tier1_valid_count": len(tier1_rows),
+        "russell_tier1_valid_count": sum(
+            1 for row in tier1_rows
+            if row.get("source") == "russell2000"
+        ),
         "swing_tier1_candidate_count": len(swing_tier1_candidates),
+        "russell_swing_tier1_candidate_count": sum(
+            1 for row in swing_tier1_candidates
+            if row.get("source") == "russell2000"
+        ),
         "long_term_tier1_candidate_count": len(long_term_tier1_candidates),
+        "russell_long_term_tier1_candidate_count": sum(
+            1 for row in long_term_tier1_candidates
+            if row.get("source") == "russell2000"
+        ),
         "tier2_overlap_count": (
             len(swing_tier1_candidates)
             + len(long_term_tier1_candidates)
             - len(tier2_candidates)
         ),
         "tier2_candidate_count": len(tier2_candidates),
+        "russell_tier2_candidate_count": sum(
+            1 for row in tier2_candidates
+            if row.get("source") == "russell2000"
+        ),
         "tier2_info_calls": len(tier2_symbols),
+        "russell_evaluated_count": sum(
+            1 for result in stocks_results
+            if result.get("source") == "russell2000"
+        ),
         "tier1_primary_rvol": TIER1_PRIMARY_RVOL,
         "tier1_floor_rvol": TIER1_FLOOR_RVOL,
         "scan_duration_seconds": round(time.time() - started_at, 2),

@@ -33,7 +33,7 @@ yf.set_tz_cache_location(str(YFINANCE_CACHE_DIR))
 CACHE_TTL_SECONDS = 24 * 60 * 60
 MOMENTUM_CACHE_TTL_SECONDS = 15 * 60
 MOMENTUM_SCREEN_SIZE = 50
-RUSSELL_LIQUID_LIMIT = 125
+RUSSELL_LIQUID_LIMIT = 500
 RUSSELL_VOLUME_BATCH_SIZE = 50
 
 SP500_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
@@ -300,7 +300,7 @@ def _select_liquid_russell(
     excluded_symbols: set[str],
     limit: int = RUSSELL_LIQUID_LIMIT,
 ) -> list[dict[str, Any]]:
-    """Remove overlaps, rank by latest volume, and retain 100-150 names."""
+    """Remove overlaps, rank by latest volume, and retain the requested names."""
     unique: dict[str, dict[str, Any]] = {}
     for entry in holdings:
         symbol = str(entry.get("symbol") or "")
@@ -316,7 +316,7 @@ def _select_liquid_russell(
         ),
         key=lambda entry: (-float(entry["daily_volume"]), entry["symbol"]),
     )
-    bounded_limit = max(100, min(int(limit), 150))
+    bounded_limit = max(1, min(int(limit), RUSSELL_LIQUID_LIMIT))
     return ranked[:bounded_limit]
 
 
