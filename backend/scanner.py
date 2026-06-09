@@ -749,6 +749,17 @@ def _fetch_info(symbol: str) -> dict[str, Any]:
         return {}
 
 
+def _fetch_stock_context(
+    symbol: str,
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    info = _fetch_info(symbol)
+    try:
+        behavior = get_behavior_sentiment(symbol, force=False)
+    except Exception:
+        behavior = None
+    return info, behavior
+
+
 def _evaluate(
     symbol: str,
     name: str,
@@ -1278,7 +1289,13 @@ def run_scan(
     tier2_symbols = [row["symbol"] for row in tier2_candidates]
     stage_started = time.time()
     with ThreadPoolExecutor(max_workers=6) as pool:
-        infos = dict(zip(tier2_symbols, pool.map(_fetch_info, tier2_symbols)))
+        contexts = dict(
+            zip(tier2_symbols, pool.map(_fetch_stock_context, tier2_symbols))
+        )
+    infos = {
+        symbol: context[0]
+        for symbol, context in contexts.items()
+    }
     timings["tier2_fundamentals_seconds"] = round(time.time() - stage_started, 2)
 
     # Feed universe D/E to the ETF matrix so weighted-leverage can be computed.
@@ -1290,7 +1307,7 @@ def run_scan(
     for row in tier2_candidates:
         symbol = row["symbol"]
         try:
-            info = infos.get(symbol) or {}
+            info, behavior_data = contexts.get(symbol, ({}, None))
             evaluation = _evaluate(
                 symbol,
                 info.get("longName") or info.get("shortName") or row.get("name") or symbol,
@@ -1299,6 +1316,7 @@ def run_scan(
                 fg_data,
                 info,
                 gli_data,
+                behavior_data,
                 is_etf=False,
             )
             if not evaluation:
@@ -1362,6 +1380,7 @@ def run_scan(
         ),
         key=lambda r: (
             0 if (r.get("swing_setup") or {}).get("status") == "ready" else 1,
+            -float(r.get("short_term_score") or 0.0),
             -float((r.get("swing_setup") or {}).get("setup_score") or 0.0),
             -float((r.get("swing_setup") or {}).get("success_rate") or 0.0),
             -float((r.get("swing_setup") or {}).get("risk_reward") or 0.0),
@@ -1381,6 +1400,7 @@ def run_scan(
         (r for r in etfs_results if _is_etf_short_qualified(r)),
         key=lambda r: (
             0 if (r.get("swing_setup") or {}).get("status") == "ready" else 1,
+            -float(r.get("short_term_score") or 0.0),
             -float((r.get("swing_setup") or {}).get("setup_score") or 0.0),
             -float((r.get("swing_setup") or {}).get("success_rate") or 0.0),
             -float((r.get("swing_setup") or {}).get("risk_reward") or 0.0),
@@ -1398,8 +1418,8 @@ def run_scan(
         # strategy.
         setup = r.get("swing_setup") or {}
         out = dict(r)
-        out.pop("display_score", None)
-        out["display_rationale"] = setup.get("reasons", [])
+        out["display_score"] = r["short_term_score"]
+        out["display_rationale"] = r.get("short_term_rationale", [])
         out["strategy"] = "swing"
         out["strategy_label"] = (
             "Ready"
@@ -1421,8 +1441,8 @@ def run_scan(
     def _tag_short_term_etf(r: dict[str, Any]) -> dict[str, Any]:
         setup = r.get("swing_setup") or {}
         out = dict(r)
-        out.pop("display_score", None)
-        out["display_rationale"] = setup.get("reasons", [])
+        out["display_score"] = r["short_term_score"]
+        out["display_rationale"] = r.get("short_term_rationale", [])
         out["strategy"] = "etf_swing"
         out["strategy_label"] = (
             "ETF Ready"

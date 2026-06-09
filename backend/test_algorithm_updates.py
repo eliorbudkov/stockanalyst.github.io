@@ -27,6 +27,7 @@ from scanner import (
     _is_swing_qualified,
     _build_prebreakout_swing_setup,
     _compute_prebreakout_swing_setup,
+    _fetch_stock_context,
     _long_term_prefilter_score,
     _merge_tier2_candidates,
     _passes_final_gate,
@@ -409,6 +410,21 @@ class CompanyProfileFallbackTests(unittest.TestCase):
 
 
 class SwingProfileTests(unittest.TestCase):
+    def test_stock_context_includes_behavioral_inputs(self):
+        behavior = {"short_interest": {"short_float_pct": 23.0}}
+        with (
+            patch.object(scanner, "_fetch_info", return_value={"sector": "Retail"}),
+            patch.object(
+                scanner,
+                "get_behavior_sentiment",
+                return_value=behavior,
+            ),
+        ):
+            info, fetched_behavior = _fetch_stock_context("GIII")
+
+        self.assertEqual(info["sector"], "Retail")
+        self.assertEqual(fetched_behavior, behavior)
+
     def test_swing_threshold_is_seven(self):
         self.assertEqual(SWING_THRESHOLD, 7.0)
 

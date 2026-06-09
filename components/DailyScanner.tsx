@@ -348,13 +348,8 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
   const isRed = sec?.is_red;
   const isGreen = sec?.is_green;
   const isQualified = item.is_qualified !== false;
-  const isPreBreakout =
-    (item.strategy === 'swing' || item.strategy === 'etf_swing') &&
-    item.swing_setup;
   const displayScore = item.display_score ?? item.final_score;
-  const badgeScore = isPreBreakout
-    ? (item.swing_setup?.setup_score ?? (item.swing_setup?.success_rate ?? 0) / 10)
-    : displayScore;
+  const badgeScore = displayScore;
   return (
     <li>
       <a
@@ -378,9 +373,7 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
                 border: `1.5px solid ${scoreColor(badgeScore)}`,
               }}
             >
-              {isPreBreakout
-                ? (item.swing_setup?.setup_score ?? badgeScore).toFixed(1)
-                : displayScore.toFixed(1)}
+              {displayScore.toFixed(1)}
             </div>
             {item.strategy_label && (
               <span
