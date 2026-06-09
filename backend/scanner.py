@@ -61,9 +61,15 @@ SWING_OVERALL_THRESHOLD = 7.0
 LONG_TERM_OVERALL_THRESHOLD = 7.0
 MIN_FINAL_SCORE = 7.0
 ETF_THRESHOLD = MIN_FINAL_SCORE
-SWING_MIN_RVOL = 1.50
-SWING_MIN_RISK_REWARD = 1.08
+SWING_MIN_RVOL = 1.20
+ETF_SWING_MIN_RVOL = 1.10
+SWING_MIN_RISK_REWARD = 1.50
 SWING_MIN_SUCCESS_RATE = 60.0
+SWING_MAX_BREAKOUT_DISTANCE_PCT = 5.0
+SWING_MAX_ATR_PCT = 8.0
+ETF_SWING_MAX_ATR_PCT = 5.0
+SWING_MIN_DOLLAR_VOLUME = 10_000_000.0
+ETF_SWING_MIN_DOLLAR_VOLUME = 20_000_000.0
 DEFAULT_TOP_N = 5
 TIER1_MAX_CANDIDATES = 30
 SWING_TIER1_MAX_CANDIDATES = 15
@@ -289,6 +295,7 @@ def _sanitize_scan_payload(data: dict[str, Any]) -> dict[str, Any]:
         "swing_threshold": SWING_THRESHOLD,
         "swing_overall_threshold": SWING_OVERALL_THRESHOLD,
         "swing_min_rvol": SWING_MIN_RVOL,
+        "etf_swing_min_rvol": ETF_SWING_MIN_RVOL,
         "swing_min_risk_reward": SWING_MIN_RISK_REWARD,
         "swing_min_success_rate": SWING_MIN_SUCCESS_RATE,
         "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,
@@ -478,6 +485,7 @@ def _compute_prebreakout_swing_setup(
     sub: pd.DataFrame,
     *,
     rvol: float | None = None,
+    is_etf: bool = False,
 ) -> dict[str, Any]:
     close = sub["close"]
     current_price = float(close.iloc[-1])
@@ -489,12 +497,243 @@ def _compute_prebreakout_swing_setup(
         else compute_session_adjusted_rvol(sub["volume"], sub.index[-1])
     )
     patterns = detect_patterns(sub, current_price, atr_value)
-    return _build_prebreakout_swing_setup(
-        current_price=current_price,
-        rvol=effective_rvol,
-        cup_pattern=patterns.get("cup_and_handle"),
-        rising_structure=_has_rising_price_structure(sub),
+    ma20_value = _safe_float(sma(close, 20).iloc[-1])
+    ma50_value = _safe_float(sma(close, 50).iloc[-1])
+    rsi_value = _safe_float(rsi(close, 14).iloc[-1])
+    vwap_series = vwap(
+        sub["high"],
+        sub["low"],
+        close,
+        sub["volume"],
+        20,
     )
+    macd_line, macd_signal, macd_histogram = macd(close)
+    vwap_value = _safe_float(vwap_series.iloc[-1])
+    prior_vwap = _safe_float(vwap_series.iloc[-2]) if len(vwap_series) > 1 else None
+    prior_close = _safe_float(close.iloc[-2]) if len(close) > 1 else None
+    macd_value = _safe_float(macd_line.iloc[-1])
+    macd_signal_value = _safe_float(macd_signal.iloc[-1])
+    macd_histogram_value = _safe_float(macd_histogram.iloc[-1])
+    prior_macd_histogram = (
+        _safe_float(macd_histogram.iloc[-2])
+        if len(macd_histogram) > 1
+        else None
+    )
+
+    resistance_window = sub["high"].tail(21).iloc[:-1]
+    resistance = (
+        _safe_float(resistance_window.max())
+        if not resistance_window.empty
+        else None
+    )
+    distance_to_breakout_pct = (
+        (resistance - current_price) / resistance * 100.0
+        if resistance and resistance > 0
+        else None
+    )
+    rising_structure = _has_rising_price_structure(sub)
+    trend_ok = bool(
+        ma20_value is not None
+        and ma50_value is not None
+        and current_price >= ma20_value
+        and current_price >= ma50_value
+    )
+    healthy_rsi = bool(rsi_value is not None and 45.0 <= rsi_value <= 72.0)
+    vwap_reclaim = bool(
+        vwap_value is not None
+        and prior_vwap is not None
+        and prior_close is not None
+        and prior_close <= prior_vwap
+        and current_price > vwap_value
+    )
+    macd_cross = bool(
+        macd_value is not None
+        and macd_signal_value is not None
+        and macd_histogram_value is not None
+        and prior_macd_histogram is not None
+        and macd_value > macd_signal_value
+        and macd_histogram_value > 0
+        and prior_macd_histogram <= 0
+    )
+
+    bullish_patterns: list[dict[str, Any]] = []
+    for key in ("cup_and_handle", "flag", "double_bottom", "triangle"):
+        pattern = patterns.get(key) or {}
+        if pattern.get("detected") and pattern.get("direction") == "bullish":
+            bullish_patterns.append(pattern)
+    bullish_patterns.sort(
+        key=lambda pattern: -float(pattern.get("confidence") or 0.0)
+    )
+    selected_pattern = bullish_patterns[0] if bullish_patterns else None
+    pattern_name = str(selected_pattern.get("name")) if selected_pattern else None
+    pattern_level = _safe_float(selected_pattern.get("level")) if selected_pattern else None
+    pattern_target = _safe_float(selected_pattern.get("target")) if selected_pattern else None
+    pattern_stop = _safe_float(selected_pattern.get("stop")) if selected_pattern else None
+    pattern_confidence = (
+        _safe_float(selected_pattern.get("confidence")) or 0.0
+        if selected_pattern
+        else 0.0
+    )
+
+    breakout_price = pattern_level or resistance or current_price
+    pattern_broke_out = bool(
+        pattern_level is not None and current_price >= pattern_level
+    )
+    near_pattern_breakout = bool(
+        pattern_level is not None
+        and current_price < pattern_level
+        and (pattern_level - current_price) / pattern_level * 100.0
+        <= SWING_MAX_BREAKOUT_DISTANCE_PCT
+    )
+    near_resistance = bool(
+        distance_to_breakout_pct is not None
+        and 0.0 <= distance_to_breakout_pct <= SWING_MAX_BREAKOUT_DISTANCE_PCT
+    )
+
+    entry_price = (
+        breakout_price
+        if breakout_price and breakout_price >= current_price
+        else current_price
+    )
+    recent_support = _safe_float(sub["low"].tail(20).min())
+    atr_stop = (
+        entry_price - atr_value * 1.25
+        if atr_value is not None
+        else entry_price * 0.96
+    )
+    valid_pattern_stop = (
+        pattern_stop
+        if pattern_stop is not None and 0 < pattern_stop < entry_price
+        else None
+    )
+    stop_price = valid_pattern_stop or max(
+        0.01,
+        min(atr_stop, recent_support or atr_stop),
+    )
+    risk = entry_price - stop_price
+    target_price = (
+        pattern_target
+        if pattern_target is not None and pattern_target > entry_price
+        else entry_price + risk * 2.0
+    )
+    risk_reward = (
+        round((target_price - entry_price) / risk, 2)
+        if risk > 0 and target_price > entry_price
+        else None
+    )
+
+    median_dollar_volume = float(
+        (close * sub["volume"]).tail(20).median()
+    )
+    min_rvol = ETF_SWING_MIN_RVOL if is_etf else SWING_MIN_RVOL
+    min_dollar_volume = (
+        ETF_SWING_MIN_DOLLAR_VOLUME
+        if is_etf
+        else SWING_MIN_DOLLAR_VOLUME
+    )
+    max_atr_pct = ETF_SWING_MAX_ATR_PCT if is_etf else SWING_MAX_ATR_PCT
+    atr_pct = (
+        atr_value / current_price * 100.0
+        if atr_value is not None and current_price > 0
+        else None
+    )
+    volume_ok = bool(effective_rvol is not None and effective_rvol >= min_rvol)
+    liquidity_ok = median_dollar_volume >= min_dollar_volume
+    volatility_ok = bool(atr_pct is not None and atr_pct <= max_atr_pct)
+    trigger_names: list[str] = []
+    if pattern_name:
+        trigger_names.append(pattern_name)
+    if vwap_reclaim:
+        trigger_names.append("VWAP Reclaim")
+    if macd_cross:
+        trigger_names.append("MACD Crossover")
+    if near_resistance and not pattern_name:
+        trigger_names.append("Resistance Proximity")
+
+    ready_trigger = bool(pattern_broke_out or vwap_reclaim or macd_cross)
+    near_trigger = bool(
+        near_pattern_breakout
+        or near_resistance
+        or (selected_pattern is not None and not pattern_broke_out)
+    )
+    quality_ok = trend_ok and liquidity_ok and volatility_ok
+    rr_ok = bool(
+        risk_reward is not None and risk_reward >= SWING_MIN_RISK_REWARD
+    )
+    if quality_ok and volume_ok and rr_ok and ready_trigger:
+        status = "ready"
+    elif quality_ok and volume_ok and rr_ok and near_trigger:
+        status = "near_trigger"
+    else:
+        status = "watchlist"
+
+    trend_points = 10.0 if trend_ok and rising_structure else 8.0 if trend_ok else 3.0
+    momentum_points = 10.0 if healthy_rsi and (macd_value or 0) > (macd_signal_value or 0) else 7.0 if healthy_rsi else 4.0
+    volume_points = min(10.0, 5.0 + max(0.0, float(effective_rvol or 0.0) - min_rvol) * 3.0)
+    liquidity_points = 10.0 if liquidity_ok else 3.0
+    trigger_points = 10.0 if ready_trigger else 8.0 if near_trigger else 2.0
+    proximity_points = (
+        max(0.0, 10.0 - float(distance_to_breakout_pct or 0.0) * 2.0)
+        if near_resistance
+        else 5.0
+    )
+    rr_points = min(10.0, float(risk_reward or 0.0) / 2.0 * 10.0)
+    setup_score = round(
+        ((trend_points + momentum_points) / 2.0) * 0.40
+        + ((volume_points + liquidity_points) / 2.0) * 0.25
+        + ((trigger_points + proximity_points) / 2.0) * 0.20
+        + rr_points * 0.15,
+        2,
+    )
+    success_rate = round(
+        min(
+            92.0,
+            max(
+                45.0,
+                pattern_confidence
+                if pattern_confidence
+                else 50.0 + setup_score * 4.0,
+            ),
+        ),
+        1,
+    )
+    qualified = status in ("ready", "near_trigger")
+    checks = {
+        "trend": trend_ok,
+        "liquidity": liquidity_ok,
+        "volatility": volatility_ok,
+        "elevated_rvol": volume_ok,
+        "bullish_trigger": bool(ready_trigger or near_trigger),
+        "risk_reward": rr_ok,
+    }
+    reasons = [
+        f"Status: {status.replace('_', ' ').title()}",
+        f"Triggers: {', '.join(trigger_names) if trigger_names else 'None'}",
+        f"RVOL {float(effective_rvol or 0.0):.2f}x; median dollar volume ${median_dollar_volume / 1_000_000:.1f}M",
+        f"R:R 1:{float(risk_reward or 0.0):.2f}; breakout distance {float(distance_to_breakout_pct or 0.0):.1f}%",
+        f"Setup score {setup_score:.1f}/10",
+    ]
+    return {
+        "qualified": qualified,
+        "status": status,
+        "setup_score": setup_score,
+        "trigger_names": trigger_names,
+        "pattern_name": pattern_name,
+        "checks": checks,
+        "breakout_price": round(float(breakout_price), 4),
+        "stop_price": round(float(stop_price), 4),
+        "target_price": round(float(target_price), 4),
+        "risk_reward": risk_reward,
+        "success_rate": success_rate,
+        "distance_to_breakout_pct": (
+            round(float(distance_to_breakout_pct), 2)
+            if distance_to_breakout_pct is not None
+            else None
+        ),
+        "median_dollar_volume": round(median_dollar_volume, 2),
+        "rvol": effective_rvol,
+        "reasons": reasons,
+    }
 
 
 def _fetch_info(symbol: str) -> dict[str, Any]:
@@ -563,11 +802,10 @@ def _evaluate(
     gap_v = compute_gap_pct(sub)
     sector_status = get_sector_status_for_symbol(symbol, sector)
     patterns_data = detect_patterns(sub, last_price, last_atr)
-    swing_setup = _build_prebreakout_swing_setup(
-        current_price=last_price,
+    swing_setup = _compute_prebreakout_swing_setup(
+        sub,
         rvol=rvol_v,
-        cup_pattern=patterns_data.get("cup_and_handle"),
-        rising_structure=_has_rising_price_structure(sub),
+        is_etf=is_etf,
     )
 
     # Fundamentals — fetched in parallel by run_scan() and passed in via `info`.
@@ -834,7 +1072,7 @@ def _build_tier1_rows(
 
 
 def _select_swing_tier1(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Select only complete pre-breakout setups; no score-based fallback."""
+    """Select liquid multi-trigger short-term setups before fundamentals."""
     selected: list[dict[str, Any]] = []
     for row in rows:
         if float(row.get("rvol") or 0.0) < SWING_MIN_RVOL:
@@ -848,6 +1086,8 @@ def _select_swing_tier1(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             selected.append({**row, "swing_setup": setup})
     selected.sort(
         key=lambda row: (
+            0 if row["swing_setup"].get("status") == "ready" else 1,
+            -float(row["swing_setup"].get("setup_score") or 0.0),
             -float(row["swing_setup"]["success_rate"]),
             -float(row["swing_setup"]["risk_reward"] or 0.0),
             -float(row["rvol"]),
@@ -1121,6 +1361,8 @@ def run_scan(
             if "swing" in (r.get("scan_paths") or []) and _is_swing_qualified(r)
         ),
         key=lambda r: (
+            0 if (r.get("swing_setup") or {}).get("status") == "ready" else 1,
+            -float((r.get("swing_setup") or {}).get("setup_score") or 0.0),
             -float((r.get("swing_setup") or {}).get("success_rate") or 0.0),
             -float((r.get("swing_setup") or {}).get("risk_reward") or 0.0),
         ),
@@ -1138,6 +1380,8 @@ def run_scan(
     short_term_etfs = sorted(
         (r for r in etfs_results if _is_etf_short_qualified(r)),
         key=lambda r: (
+            0 if (r.get("swing_setup") or {}).get("status") == "ready" else 1,
+            -float((r.get("swing_setup") or {}).get("setup_score") or 0.0),
             -float((r.get("swing_setup") or {}).get("success_rate") or 0.0),
             -float((r.get("swing_setup") or {}).get("risk_reward") or 0.0),
         ),
@@ -1157,7 +1401,11 @@ def run_scan(
         out.pop("display_score", None)
         out["display_rationale"] = setup.get("reasons", [])
         out["strategy"] = "swing"
-        out["strategy_label"] = "Pre-Breakout"
+        out["strategy_label"] = (
+            "Ready"
+            if setup.get("status") == "ready"
+            else "Near Trigger"
+        )
         out["is_qualified"] = _is_swing_qualified(r)
         return out
 
@@ -1176,7 +1424,11 @@ def run_scan(
         out.pop("display_score", None)
         out["display_rationale"] = setup.get("reasons", [])
         out["strategy"] = "etf_swing"
-        out["strategy_label"] = "ETF Pre-Breakout"
+        out["strategy_label"] = (
+            "ETF Ready"
+            if setup.get("status") == "ready"
+            else "ETF Near Trigger"
+        )
         out["is_qualified"] = _is_etf_short_qualified(r)
         return out
 
@@ -1357,6 +1609,7 @@ def run_scan(
         "swing_threshold": SWING_THRESHOLD,
         "swing_overall_threshold": SWING_OVERALL_THRESHOLD,
         "swing_min_rvol": SWING_MIN_RVOL,
+        "etf_swing_min_rvol": ETF_SWING_MIN_RVOL,
         "swing_min_risk_reward": SWING_MIN_RISK_REWARD,
         "swing_min_success_rate": SWING_MIN_SUCCESS_RATE,
         "long_term_overall_threshold": LONG_TERM_OVERALL_THRESHOLD,

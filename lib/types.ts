@@ -343,18 +343,18 @@ export type ScanItem = {
   long_term_bonus_reasons?: string[];
   swing_setup?: {
     qualified: boolean;
-    checks: {
-      cup_handle_stage: boolean;
-      rising_structure: boolean;
-      elevated_rvol: boolean;
-      risk_reward: boolean;
-      success_rate: boolean;
-    };
+    status?: 'ready' | 'near_trigger' | 'watchlist';
+    setup_score?: number;
+    trigger_names?: string[];
+    pattern_name?: string | null;
+    checks: Record<string, boolean>;
     breakout_price: number | null;
     stop_price: number | null;
     target_price: number | null;
     risk_reward: number | null;
     success_rate: number;
+    distance_to_breakout_pct?: number | null;
+    median_dollar_volume?: number;
     rvol: number | null;
     reasons: string[];
   };
@@ -429,6 +429,7 @@ export type ScanResult = {
   swing_threshold?: number;
   swing_overall_threshold?: number;
   swing_min_rvol?: number;
+  etf_swing_min_rvol?: number;
   swing_min_risk_reward?: number;
   swing_min_success_rate?: number;
   long_term_overall_threshold?: number;

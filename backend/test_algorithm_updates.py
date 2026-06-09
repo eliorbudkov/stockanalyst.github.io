@@ -26,6 +26,7 @@ from scanner import (
     _is_long_term_qualified,
     _is_swing_qualified,
     _build_prebreakout_swing_setup,
+    _compute_prebreakout_swing_setup,
     _long_term_prefilter_score,
     _merge_tier2_candidates,
     _passes_final_gate,
@@ -492,20 +493,97 @@ class SwingProfileTests(unittest.TestCase):
             cup_pattern=cup,
             rising_structure=True,
         )
-        self.assertEqual(SWING_MIN_RVOL, 1.5)
-        self.assertEqual(SWING_MIN_RISK_REWARD, 1.08)
+        self.assertEqual(SWING_MIN_RVOL, 1.2)
+        self.assertEqual(SWING_MIN_RISK_REWARD, 1.5)
         self.assertEqual(SWING_MIN_SUCCESS_RATE, 60.0)
         self.assertTrue(setup["qualified"])
         self.assertGreaterEqual(setup["risk_reward"], 1.08)
 
         low_rvol = _build_prebreakout_swing_setup(
             current_price=100,
-            rvol=1.49,
+            rvol=1.19,
             cup_pattern=cup,
             rising_structure=True,
         )
         self.assertFalse(low_rvol["qualified"])
         self.assertFalse(low_rvol["checks"]["elevated_rvol"])
+
+    def test_multi_trigger_setup_accepts_bull_flag_near_breakout(self):
+        index = pd.bdate_range("2025-08-01", periods=220)
+        close = pd.Series(
+            [80.0 + offset * 0.14 for offset in range(220)],
+            index=index,
+        )
+        frame = pd.DataFrame({
+            "open": close * 0.998,
+            "high": close * 1.006,
+            "low": close * 0.994,
+            "close": close,
+            "volume": 1_500_000.0,
+        })
+        pattern = {
+            "detected": True,
+            "direction": "bullish",
+            "name": "Bull Flag",
+            "confidence": 72,
+            "level": float(close.iloc[-1] * 1.02),
+            "target": float(close.iloc[-1] * 1.12),
+            "stop": float(close.iloc[-1] * 0.96),
+        }
+        patterns = {
+            "cup_and_handle": {"detected": False},
+            "flag": pattern,
+            "double_bottom": {"detected": False},
+            "triangle": {"detected": False},
+        }
+
+        with patch.object(scanner, "detect_patterns", return_value=patterns):
+            setup = _compute_prebreakout_swing_setup(frame, rvol=1.3)
+
+        self.assertTrue(setup["qualified"])
+        self.assertEqual(setup["status"], "near_trigger")
+        self.assertIn("Bull Flag", setup["trigger_names"])
+        self.assertGreaterEqual(setup["risk_reward"], 1.5)
+
+    def test_etf_uses_lower_rvol_threshold_than_stock(self):
+        index = pd.bdate_range("2025-08-01", periods=220)
+        close = pd.Series(
+            [100.0 + offset * 0.10 for offset in range(220)],
+            index=index,
+        )
+        frame = pd.DataFrame({
+            "open": close,
+            "high": close * 1.004,
+            "low": close * 0.996,
+            "close": close,
+            "volume": 2_000_000.0,
+        })
+        pattern = {
+            "detected": True,
+            "direction": "bullish",
+            "name": "Ascending Triangle",
+            "confidence": 70,
+            "level": float(close.iloc[-1] * 1.02),
+            "target": float(close.iloc[-1] * 1.15),
+            "stop": float(close.iloc[-1] * 0.96),
+        }
+        patterns = {
+            "cup_and_handle": {"detected": False},
+            "flag": {"detected": False},
+            "double_bottom": {"detected": False},
+            "triangle": pattern,
+        }
+
+        with patch.object(scanner, "detect_patterns", return_value=patterns):
+            stock_setup = _compute_prebreakout_swing_setup(
+                frame, rvol=1.15, is_etf=False,
+            )
+            etf_setup = _compute_prebreakout_swing_setup(
+                frame, rvol=1.15, is_etf=True,
+            )
+
+        self.assertFalse(stock_setup["qualified"])
+        self.assertTrue(etf_setup["qualified"])
 
     def test_prebreakout_setup_requires_sixty_percent(self):
         cup = {

@@ -261,7 +261,7 @@ export function DailyScanner() {
         <div className="mt-6 space-y-6">
           <ScanSection
             title="מניות לטווח קצר — Swing Setup"
-            subtitle={`${data.qualified_swing_count ?? 0}/${data.stocks_evaluated} מועמדים — Cup & Handle בידית · RVOL ≥ ${(data.swing_min_rvol ?? 1.5).toFixed(2)} · R:R ≥ ${(data.swing_min_risk_reward ?? 1.08).toFixed(2)} · הצלחה ≥ ${(data.swing_min_success_rate ?? 60).toFixed(0)}%`}
+            subtitle={`${data.qualified_swing_count ?? 0}/${data.stocks_evaluated} מועמדים — מגמה ונזילות · טריגר תבנית/VWAP/MACD · RVOL ≥ ${(data.swing_min_rvol ?? 1.2).toFixed(2)} · R:R ≥ ${(data.swing_min_risk_reward ?? 1.5).toFixed(2)}`}
             accent="#6ea8ff"
             items={data.top_swing_stocks || []}
           />
@@ -273,7 +273,7 @@ export function DailyScanner() {
           />
           <ScanSection
             title="קרנות סל לטווח קצר — ETF Swing"
-            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — Cup & Handle בידית · RVOL ≥ ${(data.swing_min_rvol ?? 1.5).toFixed(2)} · R:R ≥ ${(data.swing_min_risk_reward ?? 1.08).toFixed(2)} · הצלחה ≥ ${(data.swing_min_success_rate ?? 60).toFixed(0)}%`}
+            subtitle={`${data.qualified_short_term_etfs_count ?? 0}/${data.etfs_evaluated} מועמדים — מגמת ETF, נזילות וטריגר טכני · RVOL ≥ ${(data.etf_swing_min_rvol ?? 1.1).toFixed(2)} · R:R ≥ ${(data.swing_min_risk_reward ?? 1.5).toFixed(2)}`}
             accent="#3ddc97"
             items={data.top_short_term_etfs || []}
           />
@@ -307,7 +307,7 @@ function ScannerHeader({
         label="ספי Swing / LT"
         value={
           data
-            ? `1:${(data.swing_min_risk_reward ?? 1.08).toFixed(2)} · ${(data.swing_min_success_rate ?? 60).toFixed(0)}% / ${data.threshold.toFixed(1)}`
+            ? `RVOL ${(data.swing_min_rvol ?? 1.2).toFixed(2)} · R:R 1:${(data.swing_min_risk_reward ?? 1.5).toFixed(2)} / ${data.threshold.toFixed(1)}`
             : '—'
         }
         accent="#ffb454"
@@ -353,7 +353,7 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
     item.swing_setup;
   const displayScore = item.display_score ?? item.final_score;
   const badgeScore = isPreBreakout
-    ? (item.swing_setup?.success_rate ?? 0) / 10
+    ? (item.swing_setup?.setup_score ?? (item.swing_setup?.success_rate ?? 0) / 10)
     : displayScore;
   return (
     <li>
@@ -379,7 +379,7 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
               }}
             >
               {isPreBreakout
-                ? `${item.swing_setup?.success_rate.toFixed(0)}%`
+                ? (item.swing_setup?.setup_score ?? badgeScore).toFixed(1)
                 : displayScore.toFixed(1)}
             </div>
             {item.strategy_label && (
@@ -453,8 +453,25 @@ function ScanCard({ item, rank }: { item: ScanItem; rank: number }) {
                 <Chip label="R:R" value={`1:${item.swing_setup.risk_reward.toFixed(2)}`} color="#3ddc97" />
               )}
               {(item.strategy === 'swing' || item.strategy === 'etf_swing') &&
+                item.swing_setup?.trigger_names &&
+                item.swing_setup.trigger_names.length > 0 && (
+                <Chip
+                  label="Trigger"
+                  value={item.swing_setup.trigger_names.slice(0, 2).join(' + ')}
+                  color="#ffb454"
+                />
+              )}
+              {(item.strategy === 'swing' || item.strategy === 'etf_swing') &&
                 item.swing_setup?.breakout_price != null && (
                 <Chip label="פריצה" value={`$${item.swing_setup.breakout_price.toFixed(2)}`} color="#6ea8ff" />
+              )}
+              {(item.strategy === 'swing' || item.strategy === 'etf_swing') &&
+                item.swing_setup?.distance_to_breakout_pct != null && (
+                <Chip
+                  label="מרחק"
+                  value={`${item.swing_setup.distance_to_breakout_pct.toFixed(1)}%`}
+                  color="#b88cff"
+                />
               )}
               {item.strategy === 'investment' && item.long_term_score !== undefined && (
                 <ScoreChip label="LT" value={item.long_term_score} />
