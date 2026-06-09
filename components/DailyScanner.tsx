@@ -168,7 +168,10 @@ export function DailyScanner() {
       initialLoadStartedRef.current = true;
       load();
     }
-    timerRef.current = setInterval(() => setTick((t) => t + 1), 30_000);
+    timerRef.current = setInterval(() => {
+      setTick((t) => t + 1);
+      void load();
+    }, 30_000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (pollRef.current) clearTimeout(pollRef.current);
