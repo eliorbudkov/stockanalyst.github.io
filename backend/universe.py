@@ -1,8 +1,8 @@
-"""Dynamic universe fetcher: S&P 500 + Nasdaq-100 constituents from Wikipedia.
+"""Dynamic universe fetcher for large-cap indices and liquid Russell 2000 names.
 
-Wikipedia hosts the canonical constituent tables, updated as companies are
-added/removed from the indices. We scrape with pandas.read_html, dedupe by
-symbol, and cache to disk for 24h so we don't hit Wikipedia on every scan.
+S&P 500 and Nasdaq-100 constituents come from Wikipedia. Russell 2000 exposure
+comes from official BlackRock IWM holdings and is capped by daily liquidity.
+The deduplicated result is cached to disk for 24 hours.
 
 If a refresh fails, a stale dynamic cache is used. No hardcoded constituent
 list is used.
@@ -27,12 +27,26 @@ log = logging.getLogger(__name__)
 CACHE_FILE = Path(__file__).parent / "data" / "universe.json"
 MOMENTUM_CACHE_FILE = Path(__file__).parent / "data" / "momentum_universe.json"
 CACHE_FILE.parent.mkdir(exist_ok=True)
+YFINANCE_CACHE_DIR = CACHE_FILE.parent / ".yfinance-cache"
+YFINANCE_CACHE_DIR.mkdir(exist_ok=True)
+yf.set_tz_cache_location(str(YFINANCE_CACHE_DIR))
 CACHE_TTL_SECONDS = 24 * 60 * 60
 MOMENTUM_CACHE_TTL_SECONDS = 15 * 60
 MOMENTUM_SCREEN_SIZE = 50
+RUSSELL_LIQUID_LIMIT = 125
+RUSSELL_VOLUME_BATCH_SIZE = 50
 
 SP500_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 NASDAQ100_URL = "https://en.wikipedia.org/wiki/Nasdaq-100"
+IWM_HOLDINGS_URL = (
+    "https://www.ishares.com/us/products/239710/"
+    "ishares-russell-2000-etf/1467271812596.ajax"
+    "?fileType=csv&fileName=IWM_holdings&dataType=fund"
+)
+BLACKROCK_PRODUCT_DATA_URL = (
+    "https://www.blackrock.com/varnish-api/blk-one01-product-data/"
+    "product-data/api/v2/get-product-data"
+)
 
 # Map Wikipedia GICS sector names → the canonical names used in heatmap.py
 SECTOR_NORMALIZATION: dict[str, str] = {
@@ -117,6 +131,197 @@ def _fetch_nasdaq100() -> list[dict[str, Any]]:
         sector = SECTOR_NORMALIZATION.get(sec_raw, sec_raw or "Technology")
         out.append({"symbol": sym, "name": name, "sector": sector, "source": "nasdaq100"})
     return out
+
+
+def _parse_iwm_holdings_csv(text: str) -> list[dict[str, Any]]:
+    """Parse the metadata-prefixed official IWM holdings CSV."""
+    lines = text.splitlines()
+    header_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.lstrip("\ufeff").startswith("Ticker,Name,")
+        ),
+        None,
+    )
+    if header_index is None:
+        raise ValueError("IWM holdings CSV header not found")
+
+    df = pd.read_csv(StringIO("\n".join(lines[header_index:])))
+    if "Ticker" not in df.columns:
+        raise ValueError("IWM holdings CSV missing Ticker column")
+
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for _, row in df.iterrows():
+        if "Asset Class" in df.columns and str(row.get("Asset Class", "")).strip() != "Equity":
+            continue
+        symbol = _normalise_symbol(str(row.get("Ticker") or ""))
+        if symbol in seen or not _is_supported_equity_symbol(symbol):
+            continue
+        seen.add(symbol)
+        sector_raw = str(row.get("Sector") or "").strip()
+        out.append({
+            "symbol": symbol,
+            "name": str(row.get("Name") or symbol).strip(),
+            "sector": SECTOR_NORMALIZATION.get(sector_raw, sector_raw or "Unknown"),
+            "source": "russell2000",
+        })
+    if not out:
+        raise ValueError("IWM holdings CSV contained no supported equities")
+    return out
+
+
+def _parse_iwm_holdings_payload(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Parse the current BlackRock product-data response for IWM holdings."""
+    try:
+        data_points = (
+            payload["componentsByNameMap"]["holdings"]
+            ["containersByNameMap"]["all"]["dataPointsByNameMap"]
+        )
+        tickers = data_points["ticker"]["value"]
+        names = data_points["issueName"]["value"]
+        sectors = data_points["sectorName"]["value"]
+        asset_classes = data_points["assetClass"]["value"]
+    except (KeyError, TypeError) as exc:
+        raise ValueError("BlackRock IWM holdings payload is incomplete") from exc
+
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for ticker, name, sector_raw, asset_class in zip(
+        tickers,
+        names,
+        sectors,
+        asset_classes,
+    ):
+        if str(asset_class).strip() != "Equity":
+            continue
+        symbol = _normalise_symbol(str(ticker or ""))
+        if symbol in seen or not _is_supported_equity_symbol(symbol):
+            continue
+        seen.add(symbol)
+        sector_text = str(sector_raw or "").strip()
+        out.append({
+            "symbol": symbol,
+            "name": str(name or symbol).strip(),
+            "sector": SECTOR_NORMALIZATION.get(
+                sector_text,
+                sector_text or "Unknown",
+            ),
+            "source": "russell2000",
+        })
+    if not out:
+        raise ValueError("BlackRock IWM payload contained no supported equities")
+    return out
+
+
+def _fetch_iwm_holdings() -> list[dict[str, Any]]:
+    params = {
+        "appSubType": "ISHARES",
+        "appType": "PRODUCT_PAGE",
+        "component": "holdings.all",
+        "locale": "en_US",
+        "portfolioId": "239710",
+        "targetSite": "us-ishares",
+        "userType": "individual",
+        "excludeContent": "true",
+        "asOfDate": "",
+        "includeConfig": "true",
+    }
+    try:
+        response = curl_requests.get(
+            BLACKROCK_PRODUCT_DATA_URL,
+            params=params,
+            impersonate="chrome",
+            headers={"Accept": "application/json"},
+            timeout=30,
+        )
+        response.raise_for_status()
+        return _parse_iwm_holdings_payload(response.json())
+    except Exception as api_exc:
+        log.warning("BlackRock IWM JSON fetch failed; trying legacy CSV: %s", api_exc)
+
+    response = curl_requests.get(
+        IWM_HOLDINGS_URL,
+        impersonate="chrome",
+        headers={"Accept": "text/csv,*/*"},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return _parse_iwm_holdings_csv(response.text)
+
+
+def _latest_daily_volumes(
+    symbols: list[str],
+    batch_size: int = RUSSELL_VOLUME_BATCH_SIZE,
+) -> dict[str, float]:
+    """Fetch latest positive daily volume sequentially in bounded batches."""
+    bounded_batch_size = max(1, min(int(batch_size), RUSSELL_VOLUME_BATCH_SIZE))
+    volumes: dict[str, float] = {}
+
+    for start in range(0, len(symbols), bounded_batch_size):
+        chunk = symbols[start:start + bounded_batch_size]
+        try:
+            raw = yf.download(
+                chunk,
+                period="5d",
+                interval="1d",
+                auto_adjust=True,
+                progress=False,
+                group_by="ticker",
+                threads=True,
+            )
+        except Exception as exc:
+            log.warning("Russell volume batch failed (%s symbols): %s", len(chunk), exc)
+            continue
+
+        for symbol in chunk:
+            try:
+                if isinstance(raw.columns, pd.MultiIndex):
+                    if symbol in raw.columns.get_level_values(0):
+                        series = raw[symbol]["Volume"]
+                    else:
+                        series = raw["Volume"][symbol]
+                elif len(chunk) == 1:
+                    series = raw["Volume"]
+                else:
+                    continue
+                positive = pd.to_numeric(series, errors="coerce")
+                positive = positive[positive > 0].dropna()
+                if not positive.empty:
+                    volumes[symbol] = float(positive.iloc[-1])
+            except (KeyError, TypeError, ValueError):
+                continue
+    return volumes
+
+
+def _select_liquid_russell(
+    holdings: list[dict[str, Any]],
+    excluded_symbols: set[str],
+    limit: int = RUSSELL_LIQUID_LIMIT,
+) -> list[dict[str, Any]]:
+    """Remove overlaps, rank by latest volume, and retain 100-150 names."""
+    unique: dict[str, dict[str, Any]] = {}
+    for entry in holdings:
+        symbol = str(entry.get("symbol") or "")
+        if symbol and symbol not in excluded_symbols:
+            unique.setdefault(symbol, entry)
+
+    volumes = _latest_daily_volumes(sorted(unique))
+    ranked = sorted(
+        (
+            {**unique[symbol], "daily_volume": volume}
+            for symbol, volume in volumes.items()
+            if volume > 0
+        ),
+        key=lambda entry: (-float(entry["daily_volume"]), entry["symbol"]),
+    )
+    bounded_limit = max(100, min(int(limit), 150))
+    return ranked[:bounded_limit]
+
+
+def _fetch_russell2000(excluded_symbols: set[str]) -> list[dict[str, Any]]:
+    return _select_liquid_russell(_fetch_iwm_holdings(), excluded_symbols)
 
 
 def _read_tables(url: str) -> list[pd.DataFrame]:
@@ -243,12 +448,19 @@ def get_universe(force: bool = False) -> list[dict[str, Any]]:
     for entry in sp:
         by_symbol[entry["symbol"]] = entry
 
+    try:
+        russell = _fetch_russell2000(set(by_symbol))
+        for entry in russell:
+            by_symbol.setdefault(entry["symbol"], entry)
+    except Exception as e:
+        log.warning("Russell 2000 liquid universe fetch failed: %s", e)
+
     universe = sorted(by_symbol.values(), key=lambda x: x["symbol"])
     if not universe:
         log.warning("Both Wikipedia fetches failed — using hardcoded fallback list")
         if stale_cache:
             return stale_cache
-        raise RuntimeError("Dynamic S&P 500/Nasdaq-100 universe unavailable and cache is empty")
+        raise RuntimeError("Dynamic US equity universe unavailable and cache is empty")
 
     try:
         CACHE_FILE.write_text(

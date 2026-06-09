@@ -1,7 +1,7 @@
 """Daily market scanner.
 
-Uses a dynamic S&P 500 + Nasdaq-100 universe. Tier 1 performs a cheap batch
-OHLCV pass with separate Swing (RVOL) and Long-Term (stability) funnels.
+Uses a dynamic S&P 500, Nasdaq-100, and liquid Russell 2000 universe. Tier 1
+performs a cheap batch OHLCV pass with separate Swing and Long-Term funnels.
 Tier 2 runs expensive fundamentals for at most 30 merged candidates. ETFs run
 independently through their dedicated matrix.
 
@@ -70,7 +70,7 @@ SWING_TIER1_MAX_CANDIDATES = 15
 LONG_TERM_TIER1_MAX_CANDIDATES = 15
 TIER1_PRIMARY_RVOL = 1.50
 TIER1_FLOOR_RVOL = 1.15
-STOCK_BATCH_CHUNK_SIZE = 200
+STOCK_BATCH_CHUNK_SIZE = 50
 STOCK_BATCH_WORKERS = 3
 
 
@@ -1319,6 +1319,10 @@ def run_scan(
         "universe_sources": {
             "sp500": sum(1 for entry in index_universe if entry.get("source") == "sp500"),
             "nasdaq100_only": sum(1 for entry in index_universe if entry.get("source") == "nasdaq100"),
+            "russell2000": sum(
+                1 for entry in index_universe
+                if entry.get("source") == "russell2000"
+            ),
             "day_gainers": sum(
                 1 for entry in momentum_universe
                 if "day_gainers" in (entry.get("momentum_sources") or [])

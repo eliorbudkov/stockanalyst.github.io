@@ -27,9 +27,8 @@ from universe import get_universe  # noqa: E402
 
 
 def main() -> int:
-    # Best-effort: refresh the S&P 500 / Nasdaq-100 constituent list too. It
-    # changes rarely, and a Wikipedia hiccup here must not abort the scan, so
-    # swallow failures and keep the existing universe seed.
+    # Best-effort: refresh all index constituents and the liquid Russell subset.
+    # A provider hiccup here must not abort the scan, so keep the existing seed.
     try:
         universe = get_universe(force=True)
         print(f"universe refreshed: {len(universe)} symbols")

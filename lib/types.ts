@@ -415,6 +415,7 @@ export type ScanResult = {
   universe_sources: {
     sp500: number;
     nasdaq100_only: number;
+    russell2000: number;
     day_gainers: number;
     most_actives: number;
   };

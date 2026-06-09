@@ -38,6 +38,7 @@ tsconfig.tsbuildinfo
 
 # runtime cache (regenerated automatically)
 backend/data/*.json
+backend/data/.yfinance-cache/
 # ...but keep committed seed data so a fresh cloud deploy (Render's disk is
 # ephemeral) gets an instant first paint without a live Wikipedia/yfinance fetch.
 !backend/data/universe.json

@@ -273,6 +273,9 @@ class GeneralScoreProfileTests(unittest.TestCase):
 
 
 class ScanHostingSafetyTests(unittest.TestCase):
+    def test_stock_ohlcv_batches_are_render_safe(self):
+        self.assertLessEqual(scanner.STOCK_BATCH_CHUNK_SIZE, 50)
+
     def test_disabled_live_scan_never_computes_without_seed(self):
         empty_cache = {
             "data": None,
